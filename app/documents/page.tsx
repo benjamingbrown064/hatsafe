@@ -1,4 +1,8 @@
+'use client';
+
+import { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout'
+import UploadDocumentModal from '@/components/documents/UploadDocumentModal';
 import { 
   PlusIcon, 
   MagnifyingGlassIcon, 
@@ -8,6 +12,7 @@ import {
 } from '@heroicons/react/24/outline'
 
 export default function DocumentsPage() {
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   // Placeholder data (will be replaced with real data from Supabase)
   const documents = [
     {
@@ -100,6 +105,15 @@ export default function DocumentsPage() {
 
   return (
     <AppLayout>
+      <UploadDocumentModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onSuccess={() => {
+          setIsUploadModalOpen(false);
+          // TODO: Refresh documents list
+        }}
+      />
+      
       <div className="space-y-6">
         {/* Page header */}
         <div className="flex items-center justify-between">
@@ -109,7 +123,10 @@ export default function DocumentsPage() {
               All compliance documents across people, vehicles, and assets
             </p>
           </div>
-          <button className="btn-primary flex items-center space-x-2">
+          <button 
+            onClick={() => setIsUploadModalOpen(true)}
+            className="btn-primary flex items-center space-x-2"
+          >
             <PlusIcon className="h-5 w-5" />
             <span>Upload Document</span>
           </button>

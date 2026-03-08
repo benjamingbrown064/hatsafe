@@ -1,9 +1,14 @@
+'use client';
+
 import AppLayout from '@/components/layout/AppLayout'
+import ExpiryAlerts from '@/components/dashboard/ExpiryAlerts'
+import AISuggestions from '@/components/dashboard/AISuggestions'
 import {
   ExclamationTriangleIcon,
   ClockIcon,
   CheckCircleIcon,
   DocumentTextIcon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline'
 
 export default function DashboardPage() {
@@ -81,90 +86,53 @@ export default function DashboardPage() {
           ))}
         </div>
 
+        {/* AI-Powered Banner */}
+        <div className="card bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-200">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <div className="w-12 h-12 bg-yellow-400 rounded-lg flex items-center justify-center">
+                <SparklesIcon className="w-6 h-6 text-black" />
+              </div>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                AI-Powered Compliance Assistant
+              </h3>
+              <p className="text-sm text-gray-700 mb-3">
+                HatSafe automatically monitors all your documents, predicts compliance issues before they happen, 
+                and provides intelligent recommendations to keep your team safe and legal.
+              </p>
+              <div className="flex items-center gap-4 text-xs text-gray-600">
+                <span className="flex items-center gap-1">
+                  <CheckCircleIcon className="w-4 h-4 text-green-600" />
+                  Auto-extract document data
+                </span>
+                <span className="flex items-center gap-1">
+                  <CheckCircleIcon className="w-4 h-4 text-green-600" />
+                  Smart expiry predictions
+                </span>
+                <span className="flex items-center gap-1">
+                  <CheckCircleIcon className="w-4 h-4 text-green-600" />
+                  Cost optimization insights
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Main content grid */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Urgent actions */}
-          <div className="card">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Urgent Actions</h2>
-              <p className="text-sm text-gray-600">Documents requiring immediate attention</p>
-            </div>
-
-            <div className="space-y-3">
-              {urgentItems.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:border-primary-300 transition-colors"
-                >
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-900">{item.entity}</div>
-                    <div className="text-sm text-gray-600">{item.type}</div>
-                  </div>
-                  <div className="text-right">
-                    {item.status === 'expired' ? (
-                      <span className="badge-expired">
-                        Overdue {Math.abs(item.daysUntil)} days
-                      </span>
-                    ) : (
-                      <span className="badge-expiring">
-                        {item.daysUntil} days left
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-4">
-              <button className="btn-primary w-full">
-                View All Expiring Documents
-              </button>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* AI Expiry Alerts - Takes 2 columns */}
+          <div className="lg:col-span-2">
+            <div className="card">
+              <ExpiryAlerts />
             </div>
           </div>
 
-          {/* Recent uploads */}
-          <div className="card">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Recent Uploads</h2>
-              <p className="text-sm text-gray-600">Recently added documents</p>
-            </div>
-
-            <div className="space-y-3">
-              {[
-                { name: 'MOT_ABC123.pdf', entity: 'Van ABC-123', time: '2 hours ago', status: 'approved' },
-                { name: 'CSCS_JSmith.pdf', entity: 'John Smith', time: '5 hours ago', status: 'pending' },
-                { name: 'LOLER_Scaffold01.pdf', entity: 'Scaffold-01', time: '1 day ago', status: 'approved' },
-              ].map((doc, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 rounded-lg border border-gray-200"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="flex-shrink-0">
-                      <DocumentTextIcon className="h-8 w-8 text-gray-400" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900 text-sm">{doc.name}</div>
-                      <div className="text-xs text-gray-600">{doc.entity} • {doc.time}</div>
-                    </div>
-                  </div>
-                  <div>
-                    {doc.status === 'approved' ? (
-                      <span className="badge-valid">Approved</span>
-                    ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                        Pending
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-4">
-              <button className="btn-secondary w-full">
-                View All Documents
-              </button>
+          {/* AI Suggestions - Takes 1 column */}
+          <div className="lg:col-span-1">
+            <div className="card">
+              <AISuggestions />
             </div>
           </div>
         </div>
