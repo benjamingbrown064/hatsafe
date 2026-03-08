@@ -1,282 +1,465 @@
 # HatSafe Design System
-
-**Brand Identity:** Construction safety meets modern software. Professional, trustworthy, high-visibility.
-
----
-
-## Brand Colors
-
-### Primary (Safety Yellow)
-- **#FFC107** - Main brand color (high visibility, construction/safety association)
-- Use for: Primary buttons, accents, alerts, key actions
-
-### Secondary (Deep Black)
-- **#1A1A1A** - Professional, strong, trustworthy
-- Use for: Text, headers, secondary buttons, borders
-
-### Status Colors (Compliance States)
-- **Valid:** #10B981 (Green) - Documents current and valid
-- **Expiring:** #F59E0B (Amber) - Approaching expiry (7-30 days)
-- **Expired:** #EF4444 (Red) - Overdue, requires action
-- **Missing:** #6B7280 (Grey) - Document not uploaded
-
-### Neutrals
-- **Background:** #FAFAFA (soft warm grey)
-- **Surface:** #FFFFFF (clean white cards)
-- **Border:** #E8E8E8 (subtle, minimal)
-- **Text:** #1A1A1A (primary), #525252 (secondary), #7A7A7A (muted)
-
----
-
-## Typography
-
-**Font Stack:**
-```css
--apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif
-```
-
-**Weights:**
-- Regular (400) - Body text
-- Medium (500) - Labels, UI elements
-- Semibold (600) - Headings, emphasis
-
-**Sizes:**
-- H1: 30px (text-3xl)
-- H2: 24px (text-2xl)
-- H3: 20px (text-xl)
-- Body: 16px (text-base)
-- Small: 14px (text-sm)
-- Tiny: 12px (text-xs)
-
----
-
-## Spacing
-
-**8px Grid System:**
-- Base unit: 8px
-- Common spacing: 8px, 16px, 24px, 32px, 48px, 64px
-- Card padding: 24px (p-6)
-- Page margins: 32px (p-8)
-
----
-
-## Border Radius
-
-- **Small:** 6px (form inputs, small buttons)
-- **Medium:** 10px (cards, standard buttons)
-- **Large:** 14px (modals, large cards)
-- **Extra Large:** 20px (special elements)
-
----
-
-## Shadows
-
-**Soft, subtle shadows (never harsh):**
-- Card: `shadow-sm` - Subtle elevation
-- Modal: `shadow-lg` - More prominent elevation
-- Hover: `shadow-md` - Interactive feedback
-
----
-
-## Components
-
-### Buttons
-
-**Primary (Yellow):**
-```jsx
-<button className="btn-primary">Upload Document</button>
-```
-- Yellow background (#FFC107)
-- Black text (#1A1A1A)
-- Hover: Slightly darker yellow
-- Use for: Primary actions, CTAs
-
-**Secondary (White/Grey):**
-```jsx
-<button className="btn-secondary">Cancel</button>
-```
-- White background
-- Grey border
-- Black text
-- Use for: Secondary actions, cancel
-
-### Status Badges
-
-```jsx
-<span className="badge-valid">Valid</span>
-<span className="badge-expiring">Expiring Soon</span>
-<span className="badge-expired">Expired</span>
-<span className="badge-missing">Missing</span>
-```
-
-### Cards
-
-```jsx
-<div className="card">
-  <h3>Card Title</h3>
-  <p>Card content...</p>
-</div>
-```
-- White background
-- Subtle border
-- 10px border radius
-- 24px padding
+**Version 2.0 - Premium Minimal**  
+**Last Updated:** 2026-03-08
 
 ---
 
 ## Design Principles
 
-### 1. Safety First
-- High contrast (WCAG AA compliant)
-- Clear status indicators (color + text)
-- Large touch targets (44px minimum on mobile)
+1. **Clarity** - Every element serves a purpose
+2. **Hierarchy** - Typography and spacing drive importance
+3. **Spacing** - Generous whitespace, never cramped
+4. **Simplicity** - Remove the unnecessary
+5. **Consistency** - Predictable patterns throughout
+6. **Subtle Polish** - Refined details, not decoration
 
-### 2. Professional & Clean
-- Generous whitespace
-- Consistent alignment (8px grid)
-- Minimal borders (only when needed)
-- Soft shadows (never harsh)
+**Aesthetic Reference:**
+- Apple (calm, minimal, refined)
+- Linear (clean, spacious, purposeful)
+- Arc Browser (modern, uncluttered)
+- Things 3 (soft, considered, elegant)
 
-### 3. Construction-Appropriate
-- Yellow evokes high-visibility safety gear
-- Black conveys strength and professionalism
-- Status colors match universal traffic light system (green/amber/red)
-
-### 4. Mobile-Friendly
-- Works on building sites (outdoor visibility)
-- Easy to use with gloves (large touch targets)
-- Works offline (progressive web app features)
+**NOT:**
+- Generic SaaS dashboards
+- Heavy borders and shadows
+- Cluttered layouts
+- Excessive colors
 
 ---
 
-## Accessibility
+## Color System
 
-### Color Contrast
-- All text meets WCAG AA (4.5:1 for body, 3:1 for large text)
-- Status never relies on color alone (always includes text/icon)
+### Single Accent Color Philosophy
+Use **only one accent color** across the entire system.
 
-### Focus States
-- Visible focus ring (yellow, 2px)
-- Keyboard navigation fully supported
+**Accent Color: Safety Yellow**
+- Primary: `#FFC107` (Safety Yellow - represents construction/safety)
+- Use ONLY for:
+  - Primary buttons
+  - Links
+  - Active navigation
+  - Selected items
+  - Focus states
 
-### Screen Readers
-- Semantic HTML (proper heading hierarchy)
-- ARIA labels on all interactive elements
-- Alt text on all images
+### Neutrals (Soft & Calm)
+- **Background:** `#FAFAFA` (soft off-white, not pure white)
+- **Surface:** `#FFFFFF` (white cards on off-white background)
+- **Border:** `#E5E5E5` (subtle, barely visible)
+- **Text Primary:** `#1A1A1A` (near-black, softer than #000)
+- **Text Secondary:** `#6B6B6B` (medium grey)
+- **Text Tertiary:** `#A3A3A3` (light grey)
 
----
+### Semantic Colors (Minimal Use)
+- **Success:** `#10B981` (green, used sparingly)
+- **Warning:** `#F59E0B` (amber)
+- **Error:** `#EF4444` (red)
+- **Info:** `#3B82F6` (blue)
 
-## Voice & Tone
-
-**Be clear, direct, and helpful:**
-- ✅ "MOT expires in 7 days" (clear, actionable)
-- ❌ "Your vehicle documentation requires attention" (vague, corporate)
-
-**Be human, not robotic:**
-- ✅ "Upload Sarah's CSCS card" (natural)
-- ❌ "Initiate document upload process for employee entity" (technical jargon)
-
-**Be reassuring, not alarmist:**
-- ✅ "3 documents expiring this month. Upload renewals when ready."
-- ❌ "URGENT: COMPLIANCE FAILURE IMMINENT"
-
----
-
-## Icon System
-
-**Use Font Awesome Pro Duotone (if available) or Heroicons:**
-- Document: 📄
-- Person: 👤
-- Vehicle: 🚗
-- Equipment: 🔧
-- Calendar: 📅
-- Alert: ⚠️
-- Check: ✓
-- Upload: ⬆️
-
-**Icon sizing:**
-- Inline: 16px
-- Standalone: 20px
-- Large: 24px
+**Rule:** Semantic colors only for status badges and alerts. Never for decoration.
 
 ---
 
-## Layout Patterns
+## Typography
 
-### Dashboard
-- Urgent actions at top (expiring/expired)
-- Calendar view center
-- Summary widgets right sidebar
+### Font Family
+- **Primary:** `Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`
+- **Monospace:** `"SF Mono", Monaco, monospace` (for codes/numbers)
 
-### Entity Profiles (People/Vehicles/Assets)
-- Header: Name, photo, key details
-- Documents: Grouped by type, status badges
-- Timeline: Recent activity
+### Type Scale (8px grid aligned)
+```
+Hero:      32px / 2rem  (line-height: 40px)
+H1:        24px / 1.5rem (line-height: 32px)
+H2:        20px / 1.25rem (line-height: 28px)
+H3:        18px / 1.125rem (line-height: 24px)
+Body:      14px / 0.875rem (line-height: 20px)
+Small:     12px / 0.75rem (line-height: 16px)
+Tiny:      11px / 0.6875rem (line-height: 16px)
+```
 
-### Document List
-- Table view (desktop)
-- Card view (mobile)
-- Filters: Status, type, entity, date
-- Sort: Expiry date (ascending)
+### Font Weights
+- **Regular:** 400 (body text, secondary headings)
+- **Medium:** 500 (buttons, labels)
+- **Semibold:** 600 (primary headings, emphasis)
+
+**Avoid:** Bold (700), Light (300)
+
+### Hierarchy Rules
+- Large headings with generous spacing
+- Clear distinction between heading levels
+- Minimal use of bold text (rely on size/weight/color instead)
+- Single font family throughout
 
 ---
 
-## Animation
+## Spacing System (8px Grid)
 
-**Subtle, fast transitions:**
-- Duration: 150ms (default)
-- Easing: ease-in-out
-- Never auto-animate large movements (accessibility)
+All spacing must be multiples of 8px:
 
-**Use for:**
-- Hover states
-- Button clicks
-- Modal open/close
-- Toast notifications
+```
+XXS:  4px  (0.25rem) - tight elements
+XS:   8px  (0.5rem)  - minimal gap
+SM:   12px (0.75rem) - compact spacing
+MD:   16px (1rem)    - default spacing
+LG:   24px (1.5rem)  - section spacing
+XL:   32px (2rem)    - major sections
+2XL:  48px (3rem)    - page sections
+3XL:  64px (4rem)    - hero spacing
+```
 
-**Don't use for:**
-- Page transitions (too slow)
-- Background animations (distracting)
+**Vertical Rhythm:**
+- Prefer strong vertical spacing over dense multi-column layouts
+- Section spacing: 24px minimum, 32-48px preferred
+- Card padding: 24px (not 16px)
+- Between cards: 16px minimum, 24px preferred
+
+**Layout Padding:**
+- Page edges: 24px mobile, 32px desktop
+- Container max-width: 1280px
+- Content max-width: 768px (for reading)
+
+---
+
+## Border Radius
+
+Soft, medium rounded corners (not sharp, not pill-shaped):
+
+```
+Small:  6px  (buttons, badges, inputs)
+Medium: 10px (cards, modals)
+Large:  14px (hero sections, containers)
+```
+
+**Never use:**
+- Sharp corners (0px)
+- Pill shapes (9999px) except for avatar circles
+
+---
+
+## Shadows (Minimal)
+
+Use shadows **only** when needed for elevation:
+
+```
+Subtle:   0 1px 2px rgba(0,0,0,0.04)
+Card:     0 1px 3px rgba(0,0,0,0.06)
+Elevated: 0 4px 6px rgba(0,0,0,0.08)
+Modal:    0 8px 16px rgba(0,0,0,0.12)
+```
+
+**Rule:** Default to no shadow. Add only when necessary for hierarchy.
+
+---
+
+## Surfaces
+
+### Surface Hierarchy
+1. **Background** (`#FAFAFA`) - page base
+2. **Card** (`#FFFFFF`) - content containers
+3. **Elevated** (`#FFFFFF` + shadow) - modals, dropdowns
+
+### Separation Techniques
+- Prefer **spacing** over borders
+- Use **subtle background contrast** over heavy outlines
+- Minimal borders: 1px `#E5E5E5` only when needed
+
+**Cards:**
+- White background on off-white base
+- 10px border radius
+- Subtle shadow (Card level)
+- 24px padding
+- 16-24px gap between cards
+
+---
+
+## Component Styling Rules
+
+### Buttons
+
+**Primary (Accent):**
+```
+Background: #FFC107 (Safety Yellow)
+Text: #1A1A1A (near-black for contrast)
+Padding: 12px 20px (vertical: 12px, horizontal: 20px)
+Border Radius: 6px
+Font Weight: 500
+Hover: Darken 5%
+```
+
+**Secondary (Neutral):**
+```
+Background: #F5F5F5 (light grey)
+Text: #1A1A1A
+Border: 1px solid #E5E5E5
+Padding: 12px 20px
+Border Radius: 6px
+Font Weight: 500
+Hover: #EBEBEB
+```
+
+**Ghost (Minimal):**
+```
+Background: transparent
+Text: #6B6B6B
+Padding: 12px 20px
+Border Radius: 6px
+Hover: #F5F5F5
+```
+
+### Inputs
+
+**Text Inputs:**
+```
+Background: #FFFFFF
+Border: 1px solid #E5E5E5
+Padding: 12px 16px
+Border Radius: 6px
+Font Size: 14px
+Placeholder: #A3A3A3
+
+Focus:
+  Border: 1px solid #FFC107
+  Outline: none
+  Box Shadow: 0 0 0 3px rgba(255, 193, 7, 0.1)
+```
+
+### Cards
+
+```
+Background: #FFFFFF
+Border: none (rely on shadow)
+Border Radius: 10px
+Padding: 24px
+Shadow: 0 1px 3px rgba(0,0,0,0.06)
+Gap (between cards): 16-24px
+```
+
+### Navigation
+
+**Sidebar (Desktop):**
+```
+Background: #FFFFFF
+Border Right: 1px solid #E5E5E5
+Width: 240px
+Padding: 24px 16px
+
+Nav Items:
+  Padding: 10px 12px
+  Border Radius: 6px
+  Font Size: 14px
+  Font Weight: 400
+  
+  Active:
+    Background: #FFF9E6 (very light yellow)
+    Text: #1A1A1A
+    Font Weight: 500
+  
+  Hover:
+    Background: #F5F5F5
+```
+
+### Tables
+
+**Simplified, airy, highly readable:**
+```
+Header:
+  Background: #FAFAFA
+  Text: 11px uppercase, tracking-wide
+  Color: #6B6B6B
+  Padding: 12px 16px
+  Border Bottom: 1px solid #E5E5E5
+
+Rows:
+  Padding: 16px
+  Border Bottom: 1px solid #F5F5F5
+  Hover: #FAFAFA (subtle)
+
+Text:
+  Font Size: 14px
+  Color: #1A1A1A
+```
+
+### Badges
+
+```
+Padding: 4px 10px
+Border Radius: 6px
+Font Size: 12px
+Font Weight: 500
+
+Status (use sparingly):
+  Valid: bg-green-50, text-green-700, border-green-200
+  Warning: bg-amber-50, text-amber-700, border-amber-200
+  Error: bg-red-50, text-red-700, border-red-200
+  Neutral: bg-gray-50, text-gray-700, border-gray-200
+```
+
+---
+
+## Interaction States
+
+### Hover
+- Subtle background change (5-10% darker/lighter)
+- No drastic color shifts
+- Smooth transition: `transition: all 150ms ease`
+
+### Active/Selected
+- Clear but refined indication
+- Use accent color background (very light tint)
+- Increase font weight slightly (400 → 500)
+
+### Focus
+- Accent color ring (3px)
+- Semi-transparent: `rgba(255, 193, 7, 0.1)`
+- Remove default outline
+
+### Disabled
+- Opacity: 50%
+- Cursor: not-allowed
+- No hover state
+
+---
+
+## Layout Guidelines
+
+### Page Structure
+```
+Page Padding: 32px (desktop), 24px (mobile)
+Max Width: 1280px (centered)
+Section Spacing: 48px (vertical rhythm)
+```
+
+### Grid System
+- Prefer **single column** or **2-column max** layouts
+- Avoid dense multi-column grids
+- Use white space to create calm
+
+### Content Width
+- Reading content: 768px max
+- Dashboard content: 1280px max
+- Forms: 512px max (centered)
 
 ---
 
 ## Responsive Breakpoints
 
-- **Mobile:** < 640px
-- **Tablet:** 640px - 1024px
-- **Desktop:** > 1024px
+```
+Mobile:  < 640px
+Tablet:  640px - 1024px
+Desktop: > 1024px
+```
 
-**Mobile-first approach:**
-- Stack layouts vertically on mobile
-- Expand to multi-column on tablet/desktop
-- Hide secondary info on mobile (show on click)
+**Mobile-First Approach:**
+- Start with mobile layout
+- Add complexity for larger screens
+- Collapse navigation to mobile menu <640px
+- Single column on mobile, 2-3 columns on desktop
 
 ---
 
-## File Structure
+## Animation
+
+### Timing
+```
+Fast:   150ms (hover, focus)
+Normal: 250ms (transitions, slides)
+Slow:   350ms (modals, drawers)
+```
+
+### Easing
+- `ease` (default)
+- `ease-in-out` (smooth start/end)
+
+**Rule:** Minimal animation. Only when it aids understanding.
+
+---
+
+## Accessibility
+
+### Contrast Ratios
+- Text on background: 4.5:1 minimum
+- Large text (18px+): 3:1 minimum
+- Interactive elements: 3:1 minimum
+
+### Focus Indicators
+- Always visible
+- Accent color ring
+- 3px minimum width
+
+### Touch Targets
+- Minimum 44x44px (mobile)
+- 16px spacing between targets
+
+---
+
+## Implementation Rules
+
+### Tailwind Classes (Preferred)
+Use consistent Tailwind utility classes:
 
 ```
-/app
-  /dashboard        - Dashboard page
-  /people           - People management
-  /vehicles         - Vehicles management
-  /assets           - Assets management
-  /documents        - Document management
-  /calendar         - Calendar view
-  /reports          - Reporting
-  /settings         - Settings
-/components
-  /ui               - Reusable UI components
-  /forms            - Form components
-  /layout           - Layout components (sidebar, header)
-/lib
-  /api              - API client functions
-  /utils            - Utility functions
-  /types            - TypeScript types
+Spacing:   p-6, px-4, py-3, gap-4, space-y-6
+Text:      text-sm, text-base, text-lg, font-medium
+Colors:    text-gray-900, text-gray-600, bg-white
+Radius:    rounded-md (6px), rounded-lg (10px)
+```
+
+### Custom Classes (When Needed)
+Define reusable classes in `globals.css`:
+
+```css
+.btn-primary { ... }
+.card { ... }
+.badge-valid { ... }
+```
+
+### Component Consistency
+- Same padding across similar components
+- Consistent border radius sizes
+- Predictable hover/focus states
+- Uniform spacing patterns
+
+---
+
+## Quality Checklist
+
+Before shipping any UI:
+
+- [ ] Follows 8px spacing grid
+- [ ] Uses only accent color where appropriate
+- [ ] No heavy borders or shadows
+- [ ] Generous whitespace between sections
+- [ ] Clear typography hierarchy
+- [ ] Calm, uncluttered layout
+- [ ] Subtle, refined interactions
+- [ ] Consistent with rest of app
+- [ ] Feels more like Apple/Linear than generic SaaS
+
+---
+
+## Color Reference (Quick)
+
+```css
+/* Brand */
+--accent: #FFC107;        /* Safety Yellow */
+--black: #1A1A1A;         /* Near-black */
+
+/* Neutrals */
+--bg: #FAFAFA;            /* Soft off-white */
+--surface: #FFFFFF;       /* White */
+--border: #E5E5E5;        /* Subtle grey */
+
+/* Text */
+--text-primary: #1A1A1A;  /* Near-black */
+--text-secondary: #6B6B6B;/* Medium grey */
+--text-tertiary: #A3A3A3; /* Light grey */
+
+/* Semantic */
+--success: #10B981;
+--warning: #F59E0B;
+--error: #EF4444;
+--info: #3B82F6;
 ```
 
 ---
 
-**Last updated:** 2026-03-08  
-**Version:** 1.0  
-**Maintained by:** Doug (Clawbot)
+**End of Design System**

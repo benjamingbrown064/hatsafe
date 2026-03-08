@@ -1,97 +1,82 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { 
-  HomeIcon, 
-  UsersIcon, 
-  TruckIcon, 
-  WrenchIcon,
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import {
+  HomeIcon,
   DocumentTextIcon,
+  UsersIcon,
+  TruckIcon,
+  WrenchIcon,
   CalendarIcon,
   ChartBarIcon,
   Cog6ToothIcon,
-} from '@heroicons/react/24/outline'
-
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
-  { name: 'People', href: '/people', icon: UsersIcon },
-  { name: 'Vehicles', href: '/vehicles', icon: TruckIcon },
-  { name: 'Assets', href: '/assets', icon: WrenchIcon },
-  { name: 'Documents', href: '/documents', icon: DocumentTextIcon },
-  { name: 'Calendar', href: '/calendar', icon: CalendarIcon },
-  { name: 'Reports', href: '/reports', icon: ChartBarIcon },
-  { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
-]
+} from '@heroicons/react/24/outline';
 
 export default function Sidebar() {
-  const pathname = usePathname()
+  const pathname = usePathname();
+
+  const navigation = [
+    { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
+    { name: 'Documents', href: '/documents', icon: DocumentTextIcon },
+    { name: 'People', href: '/people', icon: UsersIcon },
+    { name: 'Vehicles', href: '/vehicles', icon: TruckIcon },
+    { name: 'Assets', href: '/assets', icon: WrenchIcon },
+    { name: 'Calendar', href: '/calendar', icon: CalendarIcon },
+    { name: 'Reports', href: '/reports', icon: ChartBarIcon },
+    { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
+  ];
+
+  const isActive = (href: string) => pathname === href;
 
   return (
-    <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
-      <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white border-r border-gray-200 px-6 pb-4">
-        {/* Logo */}
-        <div className="flex h-16 shrink-0 items-center space-x-3">
-          <div className="w-10 h-10 bg-primary-400 rounded-lg flex items-center justify-center">
-            <span className="text-xl">🦺</span>
+    <aside className="hidden md:flex md:flex-col md:w-60 bg-white border-r border-gray-200">
+      {/* Logo */}
+      <div className="flex items-center h-16 px-6 border-b border-gray-200">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center">
+            <span className="text-black font-semibold text-sm">H</span>
           </div>
-          <div>
-            <div className="text-xl font-bold text-secondary-800">HatSafe</div>
-            <div className="text-xs text-gray-500">Compliance made simple</div>
-          </div>
+          <span className="text-lg font-semibold text-gray-900">HatSafe</span>
         </div>
-
-        {/* Navigation */}
-        <nav className="flex flex-1 flex-col">
-          <ul role="list" className="flex flex-1 flex-col gap-y-7">
-            <li>
-              <ul role="list" className="-mx-2 space-y-1">
-                {navigation.map((item) => {
-                  const isActive = pathname === item.href
-                  return (
-                    <li key={item.name}>
-                      <Link
-                        href={item.href}
-                        className={`
-                          group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-medium
-                          ${isActive 
-                            ? 'bg-primary-50 text-primary-600' 
-                            : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
-                          }
-                        `}
-                      >
-                        <item.icon
-                          className={`h-6 w-6 shrink-0 ${isActive ? 'text-primary-600' : 'text-gray-400 group-hover:text-primary-600'}`}
-                          aria-hidden="true"
-                        />
-                        {item.name}
-                      </Link>
-                    </li>
-                  )
-                })}
-              </ul>
-            </li>
-
-            {/* Bottom section - User menu */}
-            <li className="mt-auto">
-              <div className="border-t border-gray-200 pt-4">
-                <Link
-                  href="/settings/profile"
-                  className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 text-gray-700 hover:bg-gray-50 hover:text-primary-600"
-                >
-                  <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium text-gray-600">
-                    U
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-sm font-medium">Your Name</div>
-                    <div className="text-xs text-gray-500">Admin</div>
-                  </div>
-                </Link>
-              </div>
-            </li>
-          </ul>
-        </nav>
       </div>
-    </div>
-  )
+
+      {/* Navigation */}
+      <nav className="flex-1 px-4 py-6 space-y-1">
+        {navigation.map((item) => {
+          const active = isActive(item.href);
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={`
+                flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors
+                ${
+                  active
+                    ? 'bg-yellow-50 text-gray-900'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                }
+              `}
+            >
+              <item.icon className="w-5 h-5" />
+              <span>{item.name}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* User Section */}
+      <div className="p-4 border-t border-gray-200">
+        <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
+          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+            <span className="text-gray-600 text-xs font-medium">BB</span>
+          </div>
+          <div className="flex-1 text-left">
+            <div className="text-sm font-medium text-gray-900">Ben Brown</div>
+            <div className="text-xs text-gray-500">View profile</div>
+          </div>
+        </button>
+      </div>
+    </aside>
+  );
 }
