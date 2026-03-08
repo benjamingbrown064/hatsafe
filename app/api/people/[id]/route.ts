@@ -5,9 +5,10 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createClient();
 
     // Get current user and org
@@ -55,7 +56,7 @@ export async function GET(
         )
       `
       )
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('organisation_id', userData.organisation_id)
       .is('archived_at', null)
       .single();
@@ -76,9 +77,10 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createClient();
     const body = await request.json();
 
@@ -123,7 +125,7 @@ export async function PATCH(
         emergency_contact: body.emergency_contact,
         notes: body.notes,
       })
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('organisation_id', userData.organisation_id)
       .select()
       .single();
@@ -148,9 +150,10 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createClient();
 
     // Get current user and org
@@ -181,7 +184,7 @@ export async function DELETE(
     const { error: deleteError } = await supabase
       .from('people')
       .update({ archived_at: new Date().toISOString() })
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('organisation_id', userData.organisation_id);
 
     if (deleteError) {

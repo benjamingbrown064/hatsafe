@@ -1,0 +1,215 @@
+import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+
+export const dynamic = 'force-dynamic';
+
+export async function GET(request: Request) {
+  try {
+    const supabase = await createClient();
+    const { searchParams } = new URL(request.url);
+
+    // Get current user and org
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get user's organisation
+    const { data: userData, error: userDataError } = await supabase
+      .from('users')
+      .select('organisation_id')
+      .eq('id', user.id)
+      .single();
+
+    if (userDataError || !userData) {
+      return NextResponse.json(
+        { error: 'User organisation not found' },
+        { status: 404 }
+      );
+    }
+
+    const orgId = userData.organisation_id;
+
+    // Parse query params
+    const search = searchParams.get('search') || '';
+    const vehicleType = searchParams.get('type');
+    const siteId = searchParams.get('site');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '50');
+    const offset = (page - 1) * limit;
+
+    // Build query
+    let query = supabase
+      .from('vehicles')
+      .select(
+        `
+        *,
+        site:sites(id, name),
+        documents:documents(id, status, expiry_date)
+      `,
+        { count: 'exact' }
+      )
+      .eq('organisation_id', orgId)
+      .is('archived_at', null);
+
+    // Apply filters
+    if (search) {
+      query = query.or(
+        `registration.ilike.%${search}%,make.ilike.%${search}%,model.ilike.%${search}%`
+      );
+    }
+
+    if (vehicleType) {
+      query = query.eq('type', vehicleType);
+    }
+
+    if (siteId) {
+      query = query.eq('site_id', siteId);
+    }
+
+    // Execute query
+    const { data: vehicles, error: vehiclesError, count } = await query
+      .order('registration')
+      .range(offset, offset + limit - 1);
+
+    if (vehiclesError) {
+      console.error('Error fetching vehicles:', vehiclesError);
+      return NextResponse.json(
+        { error: 'Failed to fetch vehicles' },
+        { status: 500 }
+      );
+    }
+
+    // Calculate document stats for each vehicle
+    const now = new Date().toISOString();
+    const sevenDaysFromNow = new Date(
+      Date.now() + 7 * 24 * 60 * 60 * 1000
+    ).toISOString();
+
+    const vehiclesWithStats = vehicles?.map((vehicle) => {
+      const docs = vehicle.documents || [];
+      let expired = 0;
+      let expiring = 0;
+      let valid = 0;
+
+      docs.forEach((doc: any) => {
+        if (!doc.expiry_date) {
+          valid++;
+        } else if (doc.expiry_date < now) {
+          expired++;
+        } else if (doc.expiry_date < sevenDaysFromNow) {
+          expiring++;
+        } else {
+          valid++;
+        }
+      });
+
+      // Determine overall status
+      let vehicleStatus = 'valid';
+      if (expired > 0) vehicleStatus = 'expired';
+      else if (expiring > 0) vehicleStatus = 'expiring';
+
+      return {
+        id: vehicle.id,
+        registration: vehicle.registration,
+        make: vehicle.make,
+        model: vehicle.model,
+        type: vehicle.type,
+        year: vehicle.year,
+        site: vehicle.site,
+        documents: {
+          total: docs.length,
+          expired,
+          expiring,
+          valid,
+        },
+        status: vehicleStatus,
+        created_at: vehicle.created_at,
+      };
+    });
+
+    return NextResponse.json({
+      vehicles: vehiclesWithStats,
+      pagination: {
+        page,
+        limit,
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / limit),
+      },
+    });
+  } catch (error) {
+    console.error('Vehicles API error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const supabase = await createClient();
+    const body = await request.json();
+
+    // Get current user and org
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get user's organisation
+    const { data: userData, error: userDataError } = await supabase
+      .from('users')
+      .select('organisation_id')
+      .eq('id', user.id)
+      .single();
+
+    if (userDataError || !userData) {
+      return NextResponse.json(
+        { error: 'User organisation not found' },
+        { status: 404 }
+      );
+    }
+
+    // Create vehicle
+    const { data: vehicle, error: createError } = await supabase
+      .from('vehicles')
+      .insert({
+        organisation_id: userData.organisation_id,
+        registration: body.registration,
+        make: body.make,
+        model: body.model,
+        type: body.type,
+        year: body.year,
+        vin: body.vin,
+        site_id: body.site_id,
+        notes: body.notes,
+      })
+      .select()
+      .single();
+
+    if (createError) {
+      console.error('Error creating vehicle:', createError);
+      return NextResponse.json(
+        { error: 'Failed to create vehicle' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(vehicle, { status: 201 });
+  } catch (error) {
+    console.error('Create vehicle error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
