@@ -6,22 +6,14 @@ import UploadDocumentModal from '@/components/documents/UploadDocumentModal';
 import { 
   Card,
   CardBody,
-  CardHeader,
   Input,
   Button,
-  Chip,
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
 } from '@heroui/react';
 import { 
-  PlusIcon, 
-  MagnifyingGlassIcon, 
+  MagnifyingGlassIcon,
   FunnelIcon,
   ArrowDownTrayIcon,
+  PlusIcon,
 } from '@heroicons/react/24/outline';
 
 export default function DocumentsPage() {
@@ -65,29 +57,43 @@ export default function DocumentsPage() {
   ];
 
   const stats = [
-    { name: 'Valid', value: '312', color: 'success' },
-    { name: 'Expiring Soon', value: '98', color: 'warning' },
-    { name: 'Expired', value: '52', color: 'danger' },
-    { name: 'Pending', value: '25', color: 'default' },
+    { label: 'Valid', value: 312, status: 'success' },
+    { label: 'Expiring Soon', value: 98, status: 'warning' },
+    { label: 'Expired', value: 52, status: 'error' },
+    { label: 'Pending Review', value: 25, status: 'neutral' },
   ];
 
-  const getStatusChip = (status: string, daysUntil: number) => {
-    if (status === 'valid') {
-      return <Chip color="success" size="sm" variant="flat">{daysUntil} days</Chip>;
+  const breakdown = [
+    { name: 'CSCS Cards', count: 142 },
+    { name: 'IPAF', count: 58 },
+    { name: 'MOT', count: 48 },
+    { name: 'Insurance', count: 95 },
+    { name: 'LOLER', count: 87 },
+    { name: 'Other', count: 57 },
+  ];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'valid': return 'text-emerald-700';
+      case 'expiring': return 'text-amber-700';
+      case 'expired': return 'text-red-700';
+      default: return 'text-gray-600';
     }
-    if (status === 'expiring') {
-      return <Chip color="warning" size="sm" variant="flat">{daysUntil} days</Chip>;
-    }
-    return <Chip color="danger" size="sm" variant="flat">Overdue {Math.abs(daysUntil)}d</Chip>;
   };
 
-  const getEntityIcon = (type: string) => {
-    switch (type) {
-      case 'person': return '👤';
-      case 'vehicle': return '🚗';
-      case 'asset': return '🔧';
-      default: return '📄';
+  const getStatusBg = (status: string) => {
+    switch (status) {
+      case 'valid': return 'bg-emerald-50';
+      case 'expiring': return 'bg-amber-50';
+      case 'expired': return 'bg-red-50';
+      default: return 'bg-gray-50';
     }
+  };
+
+  const getStatusText = (status: string, days: number) => {
+    if (status === 'valid') return `${days} days`;
+    if (status === 'expiring') return `${days} days`;
+    return `Overdue ${Math.abs(days)}d`;
   };
 
   return (
@@ -98,150 +104,169 @@ export default function DocumentsPage() {
         onSuccess={() => setIsUploadModalOpen(false)}
       />
 
-      <div className="space-y-6">
+      <div className="space-y-10">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Documents</h1>
-            <p className="mt-1 text-sm text-gray-600">
+            <h1 className="text-[28px] font-medium text-gray-900 mb-2">Documents</h1>
+            <p className="text-[15px] text-gray-500">
               All compliance documents across people, vehicles, and assets
             </p>
           </div>
           <Button
-            color="warning"
-            startContent={<PlusIcon className="w-5 h-5" />}
-            className="bg-yellow-400 text-black font-semibold"
             onPress={() => setIsUploadModalOpen(true)}
+            className="bg-gray-900 text-white hover:bg-gray-800 rounded-[14px] px-5 h-11 font-medium shadow-sm"
+            startContent={<PlusIcon className="w-5 h-5" />}
           >
             Upload Document
           </Button>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {/* Stats - Elegant horizontal cards */}
+        <div className="grid grid-cols-4 gap-4">
           {stats.map((stat) => (
-            <Card key={stat.name} shadow="sm">
-              <CardBody className="p-4 text-center">
-                <div className="text-3xl font-semibold text-gray-900">{stat.value}</div>
-                <div className="text-sm text-gray-600 mt-1">{stat.name}</div>
-              </CardBody>
-            </Card>
+            <div
+              key={stat.label}
+              className="bg-white rounded-[16px] p-6 border border-gray-100"
+            >
+              <div className="text-[32px] font-medium text-gray-900 mb-1">
+                {stat.value}
+              </div>
+              <div className="text-[13px] text-gray-500 font-medium">
+                {stat.label}
+              </div>
+            </div>
           ))}
         </div>
 
-        {/* Filters */}
-        <Card shadow="sm">
-          <CardBody className="p-4">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Input
-                placeholder="Search by title, entity, certificate number..."
-                startContent={<MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />}
-                variant="bordered"
-                className="flex-1"
-              />
-              <Button
-                variant="bordered"
-                startContent={<FunnelIcon className="w-5 h-5" />}
-              >
-                Filters
-              </Button>
-              <Button
-                variant="bordered"
-                startContent={<ArrowDownTrayIcon className="w-5 h-5" />}
-              >
-                Export
-              </Button>
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* Documents Table */}
-        <Card shadow="sm">
-          <CardBody className="p-0">
-            <Table
-              aria-label="Documents table"
-              removeWrapper
+        {/* Search and filters - Clean and minimal */}
+        <div className="flex items-center gap-3">
+          <div className="flex-1">
+            <Input
+              placeholder="Search by title, entity, certificate number..."
               classNames={{
-                th: "bg-gray-50 text-gray-600 font-semibold",
-                td: "py-4",
+                base: "max-w-full",
+                mainWrapper: "h-12",
+                input: "text-[15px] placeholder:text-gray-400",
+                inputWrapper: "h-12 bg-white border-gray-200 rounded-[12px] hover:border-gray-300 group-data-[focus=true]:border-gray-400 shadow-none",
               }}
-            >
-              <TableHeader>
-                <TableColumn>DOCUMENT</TableColumn>
-                <TableColumn>ENTITY</TableColumn>
-                <TableColumn>CERTIFICATE NO.</TableColumn>
-                <TableColumn>ISSUE DATE</TableColumn>
-                <TableColumn>EXPIRY DATE</TableColumn>
-                <TableColumn>STATUS</TableColumn>
-                <TableColumn>ACTIONS</TableColumn>
-              </TableHeader>
-              <TableBody>
-                {documents.map((doc) => (
-                  <TableRow key={doc.id}>
-                    <TableCell>
-                      <div className="font-medium text-gray-900">{doc.title}</div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{getEntityIcon(doc.entityType)}</span>
-                        <span className="text-gray-900">{doc.entityName}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="font-mono text-sm text-gray-900">{doc.certificateNumber}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-gray-900">{doc.issueDate}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-gray-900">{doc.expiryDate}</span>
-                    </TableCell>
-                    <TableCell>
-                      {getStatusChip(doc.status, doc.daysUntilExpiry)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Button size="sm" variant="light" color="primary">
-                          View
-                        </Button>
-                        <Button size="sm" variant="light">
-                          Download
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardBody>
-        </Card>
+              startContent={
+                <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 flex-shrink-0" />
+              }
+            />
+          </div>
+          <Button
+            className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-[12px] px-4 h-12 font-medium shadow-none"
+            startContent={<FunnelIcon className="w-4 h-4" />}
+          >
+            Filters
+          </Button>
+          <Button
+            className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-[12px] px-4 h-12 font-medium shadow-none"
+            startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
+          >
+            Export
+          </Button>
+        </div>
 
-        {/* Document Type Breakdown */}
-        <Card shadow="sm">
-          <CardHeader className="pb-0 pt-6 px-6">
-            <h3 className="text-lg font-semibold text-gray-900">Document Type Breakdown</h3>
-          </CardHeader>
-          <CardBody className="p-6">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-              {[
-                { name: 'CSCS Cards', count: 142, icon: '🎫' },
-                { name: 'IPAF', count: 58, icon: '🏗️' },
-                { name: 'MOT', count: 48, icon: '🚗' },
-                { name: 'Insurance', count: 95, icon: '📋' },
-                { name: 'LOLER', count: 87, icon: '🔧' },
-                { name: 'Other', count: 57, icon: '📄' },
-              ].map((type) => (
-                <Card key={type.name} shadow="none" className="bg-gray-50">
-                  <CardBody className="p-4 text-center">
-                    <div className="text-2xl mb-2">{type.icon}</div>
-                    <div className="text-xl font-semibold text-gray-900">{type.count}</div>
-                    <div className="text-xs text-gray-600">{type.name}</div>
-                  </CardBody>
-                </Card>
-              ))}
+        {/* Document list - Soft table/list hybrid */}
+        <div className="bg-white rounded-[16px] border border-gray-100 overflow-hidden">
+          {/* Header */}
+          <div className="grid grid-cols-[2fr_1.5fr_1.5fr_1fr_1fr_1fr_1fr] gap-4 px-6 py-4 bg-gray-50/50 border-b border-gray-100">
+            <div className="text-[12px] font-semibold text-gray-500 uppercase tracking-wider">
+              Document
             </div>
-          </CardBody>
-        </Card>
+            <div className="text-[12px] font-semibold text-gray-500 uppercase tracking-wider">
+              Entity
+            </div>
+            <div className="text-[12px] font-semibold text-gray-500 uppercase tracking-wider">
+              Certificate No.
+            </div>
+            <div className="text-[12px] font-semibold text-gray-500 uppercase tracking-wider">
+              Issue Date
+            </div>
+            <div className="text-[12px] font-semibold text-gray-500 uppercase tracking-wider">
+              Expiry Date
+            </div>
+            <div className="text-[12px] font-semibold text-gray-500 uppercase tracking-wider">
+              Status
+            </div>
+            <div className="text-[12px] font-semibold text-gray-500 uppercase tracking-wider text-right">
+              Actions
+            </div>
+          </div>
+
+          {/* Rows */}
+          <div className="divide-y divide-gray-100">
+            {documents.map((doc) => (
+              <div
+                key={doc.id}
+                className="grid grid-cols-[2fr_1.5fr_1.5fr_1fr_1fr_1fr_1fr] gap-4 px-6 py-5 hover:bg-gray-50/50 transition-colors cursor-pointer"
+              >
+                <div className="flex flex-col justify-center">
+                  <div className="text-[15px] font-medium text-gray-900">
+                    {doc.title}
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <div className="text-[15px] text-gray-700">
+                    {doc.entityName}
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <div className="text-[14px] font-mono text-gray-600">
+                    {doc.certificateNumber}
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <div className="text-[14px] text-gray-600">
+                    {doc.issueDate}
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <div className="text-[14px] text-gray-900 font-medium">
+                    {doc.expiryDate}
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <div className={`inline-flex items-center px-3 py-1 rounded-full text-[13px] font-medium ${getStatusBg(doc.status)} ${getStatusColor(doc.status)}`}>
+                    {getStatusText(doc.status, doc.daysUntilExpiry)}
+                  </div>
+                </div>
+                <div className="flex items-center justify-end gap-2">
+                  <button className="text-[14px] text-gray-600 hover:text-gray-900 font-medium transition-colors">
+                    View
+                  </button>
+                  <button className="text-[14px] text-gray-500 hover:text-gray-900 font-medium transition-colors">
+                    Download
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Document type breakdown - Clean cards */}
+        <div>
+          <h2 className="text-[17px] font-medium text-gray-900 mb-5">
+            Document Type Breakdown
+          </h2>
+          <div className="grid grid-cols-6 gap-4">
+            {breakdown.map((type) => (
+              <div
+                key={type.name}
+                className="bg-white rounded-[14px] p-5 border border-gray-100 hover:border-gray-200 transition-colors text-center"
+              >
+                <div className="text-[26px] font-medium text-gray-900 mb-1">
+                  {type.count}
+                </div>
+                <div className="text-[13px] text-gray-500 font-medium">
+                  {type.name}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </AppLayout>
   );

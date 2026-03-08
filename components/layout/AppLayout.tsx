@@ -3,7 +3,7 @@ import MobileHeader from './MobileHeader';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#FAFAFA]">
       {/* Mobile Header */}
       <MobileHeader />
       
@@ -13,8 +13,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <Sidebar />
         
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="flex-1 overflow-y-auto md:pl-64">
+          <div className="max-w-[1400px] mx-auto px-8 py-10">
             {children}
           </div>
         </main>
