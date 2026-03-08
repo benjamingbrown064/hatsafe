@@ -345,6 +345,11 @@ a:focus-visible {
   }
 }
 
+/* HeroUI Button Overrides */
+button[data-slot="base"] {
+  border-radius: 14px !important;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .container {
