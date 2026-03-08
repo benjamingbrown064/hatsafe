@@ -17,13 +17,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user's organisation
-    const { data: profile } = await supabase
-      .from('profiles')
+    const { data: userData, error: userError } = await supabase
+      .from('users')
       .select('organisation_id')
       .eq('id', user.id)
       .single();
 
-    if (!profile?.organisation_id) {
+    if (userError || !userData?.organisation_id) {
+      console.error('User lookup error:', userError);
       return NextResponse.json(
         { error: 'No organisation found' },
         { status: 400 }
@@ -45,11 +46,15 @@ export async function POST(request: NextRequest) {
 
     // Parse extracted data if available
     const extractedData = extractedDataStr ? JSON.parse(extractedDataStr) : null;
+    
+    // For MVP: use placeholder entity if not provided
+    const finalEntityType = entityType || 'person';
+    const finalEntityId = entityId || '00000000-0000-0000-0000-000000000000'; // Placeholder
 
     // Generate unique file path
     const fileExt = file.name.split('.').pop();
     const fileName = `${uuidv4()}.${fileExt}`;
-    const filePath = `${profile.organisation_id}/${fileName}`;
+    const filePath = `${userData.organisation_id}/${fileName}`;
 
     // Upload to Supabase Storage
     const bytes = await file.arrayBuffer();
@@ -67,76 +72,39 @@ export async function POST(request: NextRequest) {
       throw new Error('Failed to upload file to storage');
     }
 
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from('documents')
-      .getPublicUrl(filePath);
-
-    // Determine document type and category
-    const documentType = extractedData?.documentType || 'Other';
-    const category = categorizeDocument(documentType);
-
-    // Calculate expiry status
-    let expiryStatus: 'valid' | 'expiring_soon' | 'expired' | 'no_expiry' = 'no_expiry';
-    
+    // Calculate document status
+    let status = 'pending_review';
     if (extractedData?.expiryDate) {
       const expiryDate = new Date(extractedData.expiryDate);
       const now = new Date();
       const daysUntilExpiry = Math.floor((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
       if (daysUntilExpiry < 0) {
-        expiryStatus = 'expired';
+        status = 'expired';
       } else if (daysUntilExpiry <= 30) {
-        expiryStatus = 'expiring_soon';
+        status = 'expiring_soon';
       } else {
-        expiryStatus = 'valid';
+        status = 'valid';
       }
     }
 
-    // Create document record
-    const documentData: any = {
-      organisation_id: profile.organisation_id,
-      document_type: documentType,
-      category,
-      file_name: file.name,
-      file_path: filePath,
-      file_url: urlData.publicUrl,
-      file_size: file.size,
-      mime_type: file.type,
-      uploaded_by: user.id,
-      expiry_status: expiryStatus,
-      ai_extracted: !!extractedData,
-      ai_confidence: extractedData?.confidence || null
-    };
-
-    // Add extracted fields if available
-    if (extractedData) {
-      if (extractedData.documentNumber) {
-        documentData.document_number = extractedData.documentNumber;
-      }
-      if (extractedData.issueDate) {
-        documentData.issue_date = extractedData.issueDate;
-      }
-      if (extractedData.expiryDate) {
-        documentData.expiry_date = extractedData.expiryDate;
-      }
-      if (extractedData.issuer) {
-        documentData.issuer = extractedData.issuer;
-      }
-      if (extractedData.rawText) {
-        documentData.notes = extractedData.rawText;
-      }
-    }
-
-    // Link to entity if provided
-    if (entityType && entityId) {
-      documentData.entity_type = entityType;
-      documentData.entity_id = entityId;
-    }
-
+    // 1. Create document record
     const { data: document, error: dbError } = await supabase
       .from('documents')
-      .insert(documentData)
+      .insert({
+        organisation_id: userData.organisation_id,
+        entity_type: finalEntityType,
+        entity_id: finalEntityId,
+        title: extractedData?.documentType || file.name,
+        issuer: extractedData?.issuer || null,
+        certificate_number: extractedData?.documentNumber || null,
+        issue_date: extractedData?.issueDate || null,
+        expiry_date: extractedData?.expiryDate || null,
+        status,
+        review_status: extractedData?.confidence > 0.7 ? 'approved' : 'pending',
+        confidence_score: extractedData?.confidence || null,
+        created_by: user.id
+      })
       .select()
       .single();
 
@@ -148,7 +116,25 @@ export async function POST(request: NextRequest) {
         .from('documents')
         .remove([filePath]);
       
-      throw new Error('Failed to create document record');
+      throw new Error(`Failed to create document record: ${dbError.message}`);
+    }
+
+    // 2. Create document version record
+    const { error: versionError } = await supabase
+      .from('document_versions')
+      .insert({
+        document_id: document.id,
+        version_number: 1,
+        file_path: filePath,
+        file_name: file.name,
+        file_size: file.size,
+        mime_type: file.type,
+        extraction_data: extractedData || {},
+        uploaded_by: user.id
+      });
+
+    if (versionError) {
+      console.error('Version insert error:', versionError);
     }
 
     return NextResponse.json({
@@ -168,47 +154,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-function categorizeDocument(documentType: string): string {
-  const type = documentType.toLowerCase();
-  
-  // People-related documents
-  if (type.includes('cscs') || type.includes('card') || type.includes('certification') || type.includes('qualification')) {
-    return 'certification';
-  }
-  if (type.includes('driving') || type.includes('license') || type.includes('licence')) {
-    return 'license';
-  }
-  if (type.includes('dbs') || type.includes('criminal') || type.includes('check')) {
-    return 'background_check';
-  }
-  
-  // Vehicle-related documents
-  if (type.includes('mot') || type.includes('test')) {
-    return 'inspection';
-  }
-  if (type.includes('insurance') || type.includes('policy')) {
-    return 'insurance';
-  }
-  if (type.includes('tax') || type.includes('ved')) {
-    return 'tax';
-  }
-  if (type.includes('registration') || type.includes('v5')) {
-    return 'registration';
-  }
-  
-  // Asset-related documents
-  if (type.includes('pat') || type.includes('electrical') || type.includes('safety')) {
-    return 'safety';
-  }
-  if (type.includes('calibration') || type.includes('maintenance')) {
-    return 'maintenance';
-  }
-  if (type.includes('warranty') || type.includes('guarantee')) {
-    return 'warranty';
-  }
-  
-  // Fallback
-  return 'other';
 }
