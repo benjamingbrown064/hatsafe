@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import ExpiryAlerts from '@/components/dashboard/ExpiryAlerts';
 import AISuggestions from '@/components/dashboard/AISuggestions';
@@ -12,32 +13,60 @@ import {
   SparklesIcon,
 } from '@heroicons/react/24/outline';
 
+interface DashboardStats {
+  expired: number;
+  expiringSoon: number;
+  valid: number;
+  pendingReview: number;
+}
+
 export default function DashboardPage() {
-  const stats = [
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const response = await fetch('/api/dashboard/stats');
+        if (response.ok) {
+          const data = await response.json();
+          setStats(data);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchStats();
+  }, []);
+
+  const statCards = [
     {
       name: 'Expired',
-      value: '8',
+      value: loading ? '—' : String(stats?.expired || 0),
       icon: ExclamationTriangleIcon,
       color: 'text-red-600',
       bgColor: 'bg-red-50',
     },
     {
       name: 'Expiring Soon',
-      value: '23',
+      value: loading ? '—' : String(stats?.expiringSoon || 0),
       icon: ClockIcon,
       color: 'text-amber-600',
       bgColor: 'bg-amber-50',
     },
     {
       name: 'Valid',
-      value: '156',
+      value: loading ? '—' : String(stats?.valid || 0),
       icon: CheckCircleIcon,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
     },
     {
       name: 'Pending',
-      value: '4',
+      value: loading ? '—' : String(stats?.pendingReview || 0),
       icon: DocumentTextIcon,
       color: 'text-gray-600',
       bgColor: 'bg-gray-50',
@@ -93,7 +122,7 @@ export default function DashboardPage() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {stats.map((stat) => (
+          {statCards.map((stat) => (
             <Card key={stat.name} shadow="sm">
               <CardBody className="p-6">
                 <div className="flex items-center gap-4">
