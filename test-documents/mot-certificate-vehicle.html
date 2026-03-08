@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 40px;
+            background: white;
+        }
+        .certificate {
+            border: 3px solid #000;
+            padding: 40px;
+            background: white;
+        }
+        .header {
+            background: #000;
+            color: white;
+            padding: 20px;
+            margin: -40px -40px 30px -40px;
+        }
+        .title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            font-size: 14px;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f5f5f5;
+        }
+        .label {
+            font-weight: bold;
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .value {
+            font-size: 18px;
+            color: #000;
+            margin-bottom: 15px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .pass {
+            background: #10B981;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #000;
+            font-size: 11px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="certificate">
+        <div class="header">
+            <div class="title">MOT TEST CERTIFICATE</div>
+            <div class="subtitle">Vehicle Roadworthiness Inspection</div>
+        </div>
+
+        <div class="pass">✓ PASS</div>
+
+        <div class="section">
+            <div class="grid">
+                <div>
+                    <div class="label">Vehicle Registration</div>
+                    <div class="value">AB12 CDE</div>
+                </div>
+                <div>
+                    <div class="label">VIN (Last 6 Digits)</div>
+                    <div class="value">789456</div>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div>
+                    <div class="label">Make & Model</div>
+                    <div class="value">Ford Transit Custom</div>
+                </div>
+                <div>
+                    <div class="label">Colour</div>
+                    <div class="value">White</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="grid">
+                <div>
+                    <div class="label">Test Date</div>
+                    <div class="value">12 March 2026</div>
+                </div>
+                <div>
+                    <div class="label">Expiry Date</div>
+                    <div class="value">11 March 2027</div>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div>
+                    <div class="label">Test Certificate Number</div>
+                    <div class="value">MOT123456789</div>
+                </div>
+                <div>
+                    <div class="label">Odometer Reading</div>
+                    <div class="value">45,678 miles</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="label">Test Station</div>
+            <div class="value">
+                QuickFit MOT Centre<br>
+                123 High Street, York, YO1 7AB<br>
+                Station ID: V12345
+            </div>
+        </div>
+
+        <div class="footer">
+            This vehicle has passed the MOT test and meets the minimum road safety and environmental standards required by law.<br>
+            This certificate does not guarantee the vehicle is roadworthy. Regular maintenance is required.<br>
+            DVSA | Driver and Vehicle Standards Agency | www.gov.uk/getting-an-mot
+        </div>
+    </div>
+</body>
+</html>

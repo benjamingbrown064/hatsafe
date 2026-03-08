@@ -18,6 +18,19 @@ interface ExtractedData {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if OpenAI API key is configured
+    if (!process.env.OPENAI_API_KEY) {
+      console.error('OPENAI_API_KEY is not configured');
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'AI extraction not configured',
+          details: 'OpenAI API key is missing'
+        },
+        { status: 500 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
@@ -35,7 +48,11 @@ export async function POST(request: NextRequest) {
     const mimeType = file.type;
 
     // Call OpenAI Vision API to extract data
-    const response = await openai.chat.completions.create({
+    console.log('Calling OpenAI API with file:', file.name, 'type:', mimeType);
+    
+    let response;
+    try {
+      response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         {
@@ -82,8 +99,13 @@ If you cannot confidently extract a field, set it to null. Focus especially on f
       ],
       max_tokens: 500,
       temperature: 0.1 // Low temperature for consistent extraction
-    });
+      });
+    } catch (openaiError) {
+      console.error('OpenAI API error:', openaiError);
+      throw new Error(`OpenAI API failed: ${openaiError instanceof Error ? openaiError.message : 'Unknown error'}`);
+    }
 
+    console.log('OpenAI API response received');
     const content = response.choices[0]?.message?.content;
     
     if (!content) {
@@ -134,11 +156,19 @@ If you cannot confidently extract a field, set it to null. Focus especially on f
   } catch (error) {
     console.error('Document extraction error:', error);
     
+    // Log full error details for debugging
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
+    console.error('Error message:', errorMessage);
+    console.error('Error stack:', errorStack);
+    
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to extract data from document',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: errorMessage,
+        stack: process.env.NODE_ENV === 'development' ? errorStack : undefined
       },
       { status: 500 }
     );
