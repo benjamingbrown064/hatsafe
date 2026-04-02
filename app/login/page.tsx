@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Card, CardBody, Input, Button, Checkbox } from '@heroui/react';
 import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
@@ -17,127 +16,99 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
     try {
       const supabase = createClient();
-
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        setError(error.message);
-        setLoading(false);
-        return;
-      }
-
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) { setError(error.message); setLoading(false); return; }
       router.push('/dashboard');
       router.refresh();
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred');
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#F9F9F9' }}>
+      <div className="w-full" style={{ maxWidth: '400px' }}>
+
         {/* Logo */}
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-yellow-400 rounded-lg flex items-center justify-center">
-              <span className="text-black font-bold text-xl">H</span>
-            </div>
-            <h1 className="text-3xl font-semibold text-gray-900">HatSafe</h1>
+        <div className="flex items-center gap-3 mb-10">
+          <div className="w-9 h-9 flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: '#FFC107', borderRadius: '4px' }}>
+            <span className="font-bold text-sm" style={{ color: '#1A1C1C' }}>H</span>
           </div>
-          <p className="text-sm text-gray-600">
-            Sign in to your account
-          </p>
+          <div>
+            <div className="font-semibold" style={{ color: '#1A1C1C', fontSize: '15px', letterSpacing: '-0.01em' }}>HatSafe</div>
+            <div className="label-sm" style={{ fontSize: '9px' }}>COMPLIANCE PLATFORM</div>
+          </div>
         </div>
 
-        {/* Login Form */}
-        <Card shadow="sm">
-          <CardBody className="p-8">
-            <form onSubmit={handleLogin} className="space-y-6">
-              {error && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-800">{error}</p>
-                </div>
-              )}
+        {/* Heading */}
+        <div className="mb-8">
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1A1C1C' }}>Sign in</h1>
+          <p className="mt-1" style={{ color: '#474747' }}>Access your compliance dashboard</p>
+        </div>
 
-              <Input
-                type="email"
-                label="Email address"
-                placeholder="you@company.com"
-                value={email}
-                onValueChange={setEmail}
-                required
-                variant="bordered"
-                classNames={{
-                  input: "text-base",
-                  label: "text-gray-700",
-                }}
-              />
+        {/* Form */}
+        <form onSubmit={handleLogin} className="space-y-5">
+          {error && (
+            <div className="px-4 py-3 text-sm" style={{
+              backgroundColor: '#000000', color: '#FFFFFF', borderRadius: '4px',
+              fontWeight: 500, letterSpacing: '0.01em',
+            }}>
+              {error}
+            </div>
+          )}
 
-              <Input
-                type="password"
-                label="Password"
-                placeholder="Enter your password"
-                value={password}
-                onValueChange={setPassword}
-                required
-                variant="bordered"
-                classNames={{
-                  input: "text-base",
-                  label: "text-gray-700",
-                }}
-              />
+          <div>
+            <label htmlFor="email">EMAIL ADDRESS</label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@company.com"
+              required
+              autoComplete="email"
+            />
+          </div>
 
-              <div className="flex items-center justify-between">
-                <Checkbox size="sm">
-                  <span className="text-sm text-gray-700">Remember me</span>
-                </Checkbox>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-yellow-600 hover:text-yellow-700 font-medium"
-                >
-                  Forgot password?
-                </Link>
-              </div>
+          <div>
+            <label htmlFor="password">PASSWORD</label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              autoComplete="current-password"
+            />
+          </div>
 
-              <Button
-                type="submit"
-                color="warning"
-                size="lg"
-                className="w-full bg-yellow-400 text-black font-semibold hover:bg-yellow-500"
-                isLoading={loading}
-              >
-                Sign in
-              </Button>
-            </form>
-          </CardBody>
-        </Card>
-
-        {/* Sign up link */}
-        <div className="text-center">
-          <p className="text-sm text-gray-600">
-            Don't have an account?{' '}
-            <Link
-              href="/signup"
-              className="text-yellow-600 hover:text-yellow-700 font-semibold"
-            >
-              Sign up for free
+          <div className="flex items-center justify-end">
+            <Link href="/forgot-password" className="text-xs" style={{ color: '#474747' }}>
+              Forgot password?
             </Link>
-          </p>
-        </div>
+          </div>
 
-        {/* Footer */}
-        <div className="text-center">
-          <p className="text-xs text-gray-500">
-            Compliance made simple. Never miss an expiry again.
-          </p>
-        </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn btn-primary w-full"
+            style={{ padding: '12px', fontSize: '0.875rem', fontWeight: 600 }}>
+            {loading ? 'Signing in…' : 'Sign in'}
+          </button>
+        </form>
+
+        <p className="mt-8 text-center text-sm" style={{ color: '#A3A3A3' }}>
+          No account?{' '}
+          <Link href="/signup" style={{ color: '#1A1C1C', fontWeight: 500 }}>
+            Start free trial →
+          </Link>
+        </p>
+
       </div>
     </div>
   );

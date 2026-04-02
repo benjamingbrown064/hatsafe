@@ -3,210 +3,100 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Card, CardBody, Input, Button } from '@heroui/react';
 import { createClient } from '@/lib/supabase/client';
 
 export default function SignupPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    organisationName: '',
-  });
+  const [formData, setFormData] = useState({ name: '', email: '', password: '', organisationName: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (field: string) => (value: string) => {
-    setFormData({
-      ...formData,
-      [field]: value,
-    });
-  };
+  const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setFormData(f => ({ ...f, [field]: e.target.value }));
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
-    // Basic validation
-    if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters');
-      setLoading(false);
-      return;
-    }
-
+    if (formData.password.length < 8) { setError('Password must be at least 8 characters'); setLoading(false); return; }
     try {
       const supabase = createClient();
-
-      // Step 1: Sign up the user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
-        options: {
-          data: {
-            name: formData.name,
-            organisation_name: formData.organisationName,
-          },
-        },
+        options: { data: { name: formData.name, organisation_name: formData.organisationName } },
       });
-
-      if (authError) {
-        setError(authError.message);
-        setLoading(false);
-        return;
-      }
-
-      if (!authData.user) {
-        setError('Failed to create user account');
-        setLoading(false);
-        return;
-      }
-
-      // Step 2: Create organisation (via API route)
-      const orgResponse = await fetch('/api/auth/create-organisation', {
+      if (authError) { setError(authError.message); setLoading(false); return; }
+      if (!authData.user) { setError('Failed to create user account'); setLoading(false); return; }
+      const orgRes = await fetch('/api/auth/create-organisation', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: authData.user.id,
-          organisation_name: formData.organisationName,
-          user_name: formData.name,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: authData.user.id, organisation_name: formData.organisationName, user_name: formData.name }),
       });
-
-      if (!orgResponse.ok) {
-        const errorData = await orgResponse.json();
-        setError(errorData.error || 'Failed to create organisation');
-        setLoading(false);
-        return;
-      }
-
-      // Success! Redirect to dashboard
+      if (!orgRes.ok) { const d = await orgRes.json(); setError(d.error || 'Failed to create organisation'); setLoading(false); return; }
       router.push('/dashboard');
       router.refresh();
-    } catch (err) {
-      setError('An unexpected error occurred');
-      setLoading(false);
-    }
+    } catch { setError('An unexpected error occurred'); setLoading(false); }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#F9F9F9' }}>
+      <div className="w-full" style={{ maxWidth: '400px' }}>
+
         {/* Logo */}
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-yellow-400 rounded-lg flex items-center justify-center">
-              <span className="text-black font-bold text-xl">H</span>
-            </div>
-            <h1 className="text-3xl font-semibold text-gray-900">HatSafe</h1>
+        <div className="flex items-center gap-3 mb-10">
+          <div className="w-9 h-9 flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: '#FFC107', borderRadius: '4px' }}>
+            <span className="font-bold text-sm" style={{ color: '#1A1C1C' }}>H</span>
           </div>
-          <p className="text-sm text-gray-600">
-            Create your account to get started
-          </p>
+          <div>
+            <div className="font-semibold" style={{ color: '#1A1C1C', fontSize: '15px' }}>HatSafe</div>
+            <div className="label-sm" style={{ fontSize: '9px' }}>COMPLIANCE PLATFORM</div>
+          </div>
         </div>
 
-        {/* Signup Form */}
-        <Card shadow="sm">
-          <CardBody className="p-8">
-            <form onSubmit={handleSignup} className="space-y-6">
-              {error && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-800">{error}</p>
-                </div>
-              )}
-
-              <Input
-                type="text"
-                label="Your name"
-                placeholder="Ben Brown"
-                value={formData.name}
-                onValueChange={handleChange('name')}
-                required
-                variant="bordered"
-                classNames={{
-                  input: "text-base",
-                  label: "text-gray-700",
-                }}
-              />
-
-              <Input
-                type="text"
-                label="Company name"
-                placeholder="Your Company Ltd"
-                value={formData.organisationName}
-                onValueChange={handleChange('organisationName')}
-                required
-                variant="bordered"
-                classNames={{
-                  input: "text-base",
-                  label: "text-gray-700",
-                }}
-              />
-
-              <Input
-                type="email"
-                label="Email address"
-                placeholder="you@company.com"
-                value={formData.email}
-                onValueChange={handleChange('email')}
-                required
-                variant="bordered"
-                classNames={{
-                  input: "text-base",
-                  label: "text-gray-700",
-                }}
-              />
-
-              <Input
-                type="password"
-                label="Password"
-                placeholder="At least 8 characters"
-                value={formData.password}
-                onValueChange={handleChange('password')}
-                required
-                variant="bordered"
-                description="Minimum 8 characters"
-                classNames={{
-                  input: "text-base",
-                  label: "text-gray-700",
-                }}
-              />
-
-              <Button
-                type="submit"
-                color="warning"
-                size="lg"
-                className="w-full bg-yellow-400 text-black font-semibold hover:bg-yellow-500"
-                isLoading={loading}
-              >
-                Create account
-              </Button>
-            </form>
-          </CardBody>
-        </Card>
-
-        {/* Sign in link */}
-        <div className="text-center">
-          <p className="text-sm text-gray-600">
-            Already have an account?{' '}
-            <Link
-              href="/login"
-              className="text-yellow-600 hover:text-yellow-700 font-semibold"
-            >
-              Sign in
-            </Link>
-          </p>
+        <div className="mb-8">
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1A1C1C' }}>Create account</h1>
+          <p className="mt-1" style={{ color: '#474747' }}>14-day free trial · No credit card required</p>
         </div>
 
-        {/* Footer */}
-        <div className="text-center">
-          <p className="text-xs text-gray-500">
-            By signing up, you agree to our Terms of Service and Privacy Policy
-          </p>
-        </div>
+        <form onSubmit={handleSignup} className="space-y-5">
+          {error && (
+            <div className="px-4 py-3 text-sm"
+              style={{ backgroundColor: '#000', color: '#fff', borderRadius: '4px', fontWeight: 500 }}>
+              {error}
+            </div>
+          )}
+          <div>
+            <label htmlFor="name">YOUR NAME</label>
+            <input id="name" type="text" placeholder="Ben Brown" required value={formData.name} onChange={set('name')} />
+          </div>
+          <div>
+            <label htmlFor="org">COMPANY NAME</label>
+            <input id="org" type="text" placeholder="Your Company Ltd" required value={formData.organisationName} onChange={set('organisationName')} />
+          </div>
+          <div>
+            <label htmlFor="email">EMAIL ADDRESS</label>
+            <input id="email" type="email" placeholder="you@company.com" required value={formData.email} onChange={set('email')} />
+          </div>
+          <div>
+            <label htmlFor="password">PASSWORD</label>
+            <input id="password" type="password" placeholder="Min. 8 characters" required value={formData.password} onChange={set('password')} />
+          </div>
+          <button type="submit" disabled={loading} className="btn btn-primary w-full"
+            style={{ padding: '12px', fontSize: '0.875rem', fontWeight: 600 }}>
+            {loading ? 'Creating account…' : 'Create account'}
+          </button>
+        </form>
+
+        <p className="mt-8 text-center text-sm" style={{ color: '#A3A3A3' }}>
+          Already have an account?{' '}
+          <Link href="/login" style={{ color: '#1A1C1C', fontWeight: 500 }}>Sign in →</Link>
+        </p>
+        <p className="mt-4 text-center" style={{ fontSize: '11px', color: '#A3A3A3' }}>
+          By signing up you agree to our Terms of Service and Privacy Policy
+        </p>
+
       </div>
     </div>
   );

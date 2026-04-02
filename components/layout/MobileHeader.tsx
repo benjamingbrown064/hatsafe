@@ -1,109 +1,69 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useState } from 'react';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard' },
-  { name: 'People', href: '/people' },
-  { name: 'Vehicles', href: '/vehicles' },
-  { name: 'Assets', href: '/assets' },
-  { name: 'Documents', href: '/documents' },
-  { name: 'Calendar', href: '/calendar' },
-  { name: 'Reports', href: '/reports' },
-  { name: 'Settings', href: '/settings' },
-]
+  { name: 'Dashboard',  href: '/dashboard' },
+  { name: 'People',     href: '/people' },
+  { name: 'Vehicles',   href: '/vehicles' },
+  { name: 'Assets',     href: '/assets' },
+  { name: 'Documents',  href: '/documents' },
+  { name: 'Calendar',   href: '/calendar' },
+  { name: 'Reports',    href: '/reports' },
+  { name: 'Settings',   href: '/settings' },
+];
 
 export default function MobileHeader() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const pathname = usePathname()
+  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
-    <div className="lg:hidden">
-      {/* Mobile top bar */}
-      <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6">
-        <button
-          type="button"
-          className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
-          onClick={() => setMobileMenuOpen(true)}
-        >
-          <span className="sr-only">Open sidebar</span>
-          <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+    <div className="md:hidden">
+      <div className="sticky top-0 z-40 flex h-14 items-center gap-4 px-4" style={{ backgroundColor: '#F3F3F3', borderBottom: '1px solid rgba(198,198,198,0.4)' }}>
+        <button type="button" onClick={() => setOpen(true)} className="p-1.5" style={{ color: '#474747' }}>
+          <Bars3Icon className="w-5 h-5" strokeWidth={1.5} />
         </button>
-
-        {/* Logo */}
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-primary-400 rounded-lg flex items-center justify-center">
-            <span className="text-lg">🦺</span>
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 flex items-center justify-center" style={{ backgroundColor: '#FFC107', borderRadius: '4px' }}>
+            <span className="font-bold text-xs" style={{ color: '#1A1C1C' }}>H</span>
           </div>
-          <span className="text-lg font-bold text-secondary-800">HatSafe</span>
-        </div>
-
-        <div className="flex flex-1 justify-end">
-          {/* User avatar placeholder */}
-          <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium text-gray-600">
-            U
-          </div>
+          <span className="font-semibold text-sm" style={{ color: '#1A1C1C' }}>HatSafe</span>
         </div>
       </div>
 
-      {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <div className="relative z-50 lg:hidden">
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-gray-900/80"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-
-          {/* Menu panel */}
-          <div className="fixed inset-y-0 left-0 z-50 w-64 overflow-y-auto bg-white px-6 pb-4">
-            <div className="flex h-16 shrink-0 items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-primary-400 rounded-lg flex items-center justify-center">
-                  <span className="text-lg">🦺</span>
+      {open && (
+        <div className="fixed inset-0 z-50">
+          <div className="fixed inset-0 bg-black/20" onClick={() => setOpen(false)} />
+          <div className="fixed inset-y-0 left-0 w-60 overflow-y-auto px-4 pb-4" style={{ backgroundColor: '#F3F3F3' }}>
+            <div className="flex h-14 items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 flex items-center justify-center" style={{ backgroundColor: '#FFC107', borderRadius: '4px' }}>
+                  <span className="font-bold text-xs" style={{ color: '#1A1C1C' }}>H</span>
                 </div>
-                <span className="text-lg font-bold text-secondary-800">HatSafe</span>
+                <span className="font-semibold text-sm" style={{ color: '#1A1C1C' }}>HatSafe</span>
               </div>
-              <button
-                type="button"
-                className="-m-2.5 p-2.5 text-gray-700"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <span className="sr-only">Close menu</span>
-                <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+              <button onClick={() => setOpen(false)} style={{ color: '#474747' }}>
+                <XMarkIcon className="w-5 h-5" strokeWidth={1.5} />
               </button>
             </div>
-
-            <nav className="mt-6">
-              <ul role="list" className="space-y-1">
-                {navigation.map((item) => {
-                  const isActive = pathname === item.href
-                  return (
-                    <li key={item.name}>
-                      <Link
-                        href={item.href}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className={`
-                          block rounded-md px-3 py-2 text-base font-medium
-                          ${isActive 
-                            ? 'bg-primary-50 text-primary-600' 
-                            : 'text-gray-700 hover:bg-gray-50'
-                          }
-                        `}
-                      >
-                        {item.name}
-                      </Link>
-                    </li>
-                  )
-                })}
-              </ul>
+            <nav className="mt-2 space-y-0.5">
+              {navigation.map((item) => {
+                const active = pathname === item.href;
+                return (
+                  <Link key={item.name} href={item.href} onClick={() => setOpen(false)}
+                    className="nav-item"
+                    style={active ? { backgroundColor: '#FFC107', color: '#1A1C1C', fontWeight: 600 } : {}}>
+                    {item.name}
+                  </Link>
+                );
+              })}
             </nav>
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }

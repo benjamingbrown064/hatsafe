@@ -3,18 +3,12 @@ import MobileHeader from './MobileHeader';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#FAFAFA]">
-      {/* Mobile Header */}
+    <div className="min-h-screen" style={{ backgroundColor: '#F9F9F9' }}>
       <MobileHeader />
-      
-      {/* Desktop Layout */}
-      <div className="flex h-screen">
-        {/* Sidebar - Hidden on mobile */}
+      <div className="flex min-h-screen">
         <Sidebar />
-        
-        {/* Main Content */}
-        <main className="flex-1 overflow-y-auto md:pl-64">
-          <div className="max-w-[1400px] mx-auto px-8 py-10">
+        <main className="flex-1 overflow-y-auto md:pl-60">
+          <div className="max-w-[1320px] mx-auto px-8 py-10">
             {children}
           </div>
         </main>
