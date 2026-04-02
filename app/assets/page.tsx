@@ -11,6 +11,7 @@ import {
   ArchiveBoxIcon,
   ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
+import { exportCsv } from '@/lib/exportCsv';
 
 const ALL_ASSETS = [
   { id: '1',  assetId: 'SCAF-001', name: 'Aluminium Tower Scaffold',   type: 'Scaffold',        location: 'Site A', documents: 3, expiring: 1, expired: 0, status: 'expiring' },
@@ -93,7 +94,14 @@ export default function AssetsPage() {
         <div className="card-flush">
           <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F3F3F3' }}>
             <span className="label-sm">ALL ASSETS</span>
-            <button className="btn btn-secondary flex items-center gap-2" style={{ fontSize: '12px', padding: '6px 12px' }}>
+            <button
+              className="btn btn-secondary flex items-center gap-2"
+              style={{ fontSize: '12px', padding: '6px 12px' }}
+              onClick={() => exportCsv('hatsafe-assets.csv', ALL_ASSETS.map(a => ({
+                'Asset ID': a.assetId, Name: a.name, Type: a.type,
+                Location: a.location, Documents: a.documents,
+                Expiring: a.expiring, Expired: a.expired, Status: a.status,
+              })))}>
               <ArrowDownTrayIcon className="w-3.5 h-3.5" strokeWidth={1.5} />
               Export
             </button>

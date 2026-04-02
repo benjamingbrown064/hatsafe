@@ -5,6 +5,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import UploadDocumentModal from '@/components/documents/UploadDocumentModal';
 import Link from 'next/link';
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { exportCsv } from '@/lib/exportCsv';
 
 const ALL_DOCUMENTS = [
   { id: '1',  title: 'CSCS Card',           entityName: 'John Smith',     entityType: 'person',  certificateNumber: 'CSCS123456',   issueDate: '2024-01-15', expiryDate: '2029-01-15', status: 'valid',    daysUntilExpiry: 1095 },
@@ -100,7 +101,15 @@ export default function DocumentsPage() {
         <div className="card-flush">
           <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F3F3F3' }}>
             <span className="label-sm">ALL DOCUMENTS</span>
-            <button className="btn btn-secondary flex items-center gap-2" style={{ fontSize: '12px', padding: '6px 12px' }}>
+            <button
+              className="btn btn-secondary flex items-center gap-2"
+              style={{ fontSize: '12px', padding: '6px 12px' }}
+              onClick={() => exportCsv('hatsafe-documents.csv', ALL_DOCUMENTS.map(d => ({
+                Title: d.title, Entity: d.entityName, 'Entity Type': d.entityType,
+                'Certificate No.': d.certificateNumber, 'Issue Date': d.issueDate,
+                'Expiry Date': d.expiryDate, Status: d.status,
+                'Days Until Expiry': d.daysUntilExpiry,
+              })))}>
               <ArrowDownTrayIcon className="w-3.5 h-3.5" strokeWidth={1.5} />
               Export
             </button>

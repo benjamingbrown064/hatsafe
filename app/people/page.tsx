@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import AppLayout from '@/components/layout/AppLayout';
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { exportCsv } from '@/lib/exportCsv';
 
 const ALL_PEOPLE = [
   { id: '1',  name: 'John Smith',      role: 'Carpenter',           team: 'Site A', documents: 3, expiring: 1, expired: 0, status: 'expiring' },
@@ -102,7 +103,14 @@ export default function PeoplePage() {
         <div className="card-flush">
           <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F3F3F3' }}>
             <span className="label-sm">ALL PEOPLE</span>
-            <button className="btn btn-secondary flex items-center gap-2" style={{ fontSize: '12px', padding: '6px 12px' }}>
+            <button
+              className="btn btn-secondary flex items-center gap-2"
+              style={{ fontSize: '12px', padding: '6px 12px' }}
+              onClick={() => exportCsv('hatsafe-people.csv', ALL_PEOPLE.map(p => ({
+                Name: p.name, Role: p.role, Team: p.team,
+                Documents: p.documents, Expiring: p.expiring,
+                Expired: p.expired, Status: p.status,
+              })))}>
               <ArrowDownTrayIcon className="w-3.5 h-3.5" strokeWidth={1.5} />
               Export
             </button>
