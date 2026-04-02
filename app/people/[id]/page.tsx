@@ -2,6 +2,7 @@
 
 import AppLayout from '@/components/layout/AppLayout';
 import Link from 'next/link';
+import { useRef, useState } from 'react';
 import {
   PencilIcon,
   DocumentTextIcon,
@@ -14,6 +15,7 @@ import {
   ArrowDownTrayIcon,
   ArrowUpTrayIcon,
   ClockIcon,
+  CheckCircleIcon,
 } from '@heroicons/react/24/outline';
 
 // Mock data keyed by id
@@ -72,6 +74,42 @@ function DocBadge({ status, days }: { status: string; days: number }) {
 export default function PersonProfilePage({ params }: { params: { id: string } }) {
   const person    = PEOPLE[params.id]    ?? PEOPLE['1'];
   const documents = DOCS_BY_PERSON[params.id] ?? DOCS_BY_PERSON['1'];
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingDocId, setUploadingDocId] = useState<string | null>(null);
+  const [uploadedDocId,  setUploadedDocId]  = useState<string | null>(null);
+
+  function handleDownload(doc: typeof documents[0]) {
+    const content = [
+      `HatSafe — Document Record`,
+      `${'─'.repeat(40)}`,
+      `Document:         ${doc.title}`,
+      `Certificate No.:  ${doc.certificateNumber}`,
+      `Entity:           ${person.name}`,
+      `Issuer:           ${doc.issuer}`,
+      `Issue Date:       ${doc.issueDate}`,
+      `Expiry Date:      ${doc.expiryDate}`,
+      `Status:           ${doc.status}`,
+      `${'─'.repeat(40)}`,
+      `Downloaded from HatSafe on ${new Date().toLocaleDateString('en-GB')}`,
+    ].join('\n');
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = `${doc.certificateNumber}-${doc.title.replace(/\s+/g, '-')}.txt`; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function openUpload(docId: string) {
+    setUploadingDocId(docId);
+    fileInputRef.current?.click();
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!e.target.files?.[0]) return;
+    setTimeout(() => { setUploadedDocId(uploadingDocId); setUploadingDocId(null); }, 1200);
+    e.target.value = '';
+  }
 
   const hasExpired  = documents.some(d => d.status === 'expired');
   const hasExpiring = documents.some(d => d.status === 'expiring');
@@ -248,14 +286,21 @@ export default function PersonProfilePage({ params }: { params: { id: string } }
                               View
                             </Link>
                             <button className="btn btn-secondary flex items-center gap-1.5"
-                              style={{ fontSize: '11px', padding: '5px 10px' }}>
+                              style={{ fontSize: '11px', padding: '5px 10px' }}
+                              onClick={() => handleDownload(doc)}>
                               <ArrowDownTrayIcon className="w-3 h-3" strokeWidth={2} />
                               Download
                             </button>
                             <button className="btn btn-ghost flex items-center gap-1.5"
-                              style={{ fontSize: '11px', padding: '5px 10px' }}>
-                              <ArrowUpTrayIcon className="w-3 h-3" strokeWidth={2} />
-                              Upload Renewal
+                              style={{ fontSize: '11px', padding: '5px 10px' }}
+                              onClick={() => openUpload(doc.id)}
+                              disabled={uploadingDocId === doc.id}>
+                              {uploadingDocId === doc.id
+                                ? <span>Uploading…</span>
+                                : uploadedDocId === doc.id
+                                  ? <><CheckCircleIcon className="w-3 h-3" strokeWidth={2} /> Uploaded</>
+                                  : <><ArrowUpTrayIcon className="w-3 h-3" strokeWidth={2} /> Upload Renewal</>
+                              }
                             </button>
                           </div>
                         </div>
@@ -294,6 +339,9 @@ export default function PersonProfilePage({ params }: { params: { id: string } }
             </div>
           </div>
         </div>
+
+        <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+          style={{ display: 'none' }} onChange={handleFileChange} />
 
       </div>
     </AppLayout>
