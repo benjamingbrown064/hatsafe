@@ -9,6 +9,7 @@ import {
   BoltIcon,
   Square3Stack3DIcon,
   ArchiveBoxIcon,
+  ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
 
 const ALL_ASSETS = [
@@ -90,6 +91,13 @@ export default function AssetsPage() {
 
         {/* Table */}
         <div className="card-flush">
+          <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F3F3F3' }}>
+            <span className="label-sm">ALL ASSETS</span>
+            <button className="btn btn-secondary flex items-center gap-2" style={{ fontSize: '12px', padding: '6px 12px' }}>
+              <ArrowDownTrayIcon className="w-3.5 h-3.5" strokeWidth={1.5} />
+              Export
+            </button>
+          </div>
           <table>
             <thead>
               <tr>

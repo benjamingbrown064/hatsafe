@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import AppLayout from '@/components/layout/AppLayout';
-import { TruckIcon } from '@heroicons/react/24/outline';
+import { TruckIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 
 const ALL_VEHICLES = [
   { id: '1',  registration: 'AB12 CDE', make: 'Ford',       model: 'Transit',  type: 'Van',    depot: 'Site A', documents: 4, expiring: 1, expired: 0, status: 'expiring' },
@@ -100,6 +100,13 @@ export default function VehiclesPage() {
 
         {/* Table */}
         <div className="card-flush">
+          <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F3F3F3' }}>
+            <span className="label-sm">ALL VEHICLES</span>
+            <button className="btn btn-secondary flex items-center gap-2" style={{ fontSize: '12px', padding: '6px 12px' }}>
+              <ArrowDownTrayIcon className="w-3.5 h-3.5" strokeWidth={1.5} />
+              Export
+            </button>
+          </div>
           <table>
             <thead>
               <tr>
