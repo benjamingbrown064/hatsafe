@@ -11,7 +11,6 @@ import {
   CalendarIcon,
   ChartBarIcon,
   Cog6ToothIcon,
-  QuestionMarkCircleIcon,
 } from '@heroicons/react/24/outline';
 
 const navigation = [
@@ -26,7 +25,6 @@ const navigation = [
 
 const bottom = [
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
-  { name: 'Support',  href: '/support',  icon: QuestionMarkCircleIcon },
 ];
 
 export default function Sidebar() {
