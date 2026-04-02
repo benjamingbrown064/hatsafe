@@ -34,13 +34,25 @@ const ALL_DOCUMENTS = [
 ];
 
 const PER_PAGE = 10;
+
+// Derive breakdown counts from actual data
+function countByKeyword(keyword: string) {
+  return ALL_DOCUMENTS.filter(d =>
+    d.title.toLowerCase().includes(keyword.toLowerCase())
+  ).length;
+}
+
 const breakdown = [
-  { name: 'CSCS CARDS', count: 142 },
-  { name: 'IPAF',        count: 58 },
-  { name: 'MOT',         count: 48 },
-  { name: 'INSURANCE',   count: 95 },
-  { name: 'LOLER',       count: 87 },
-  { name: 'OTHER',       count: 57 },
+  { name: 'CSCS CARDS', count: countByKeyword('cscs') },
+  { name: 'IPAF',        count: countByKeyword('ipaf') },
+  { name: 'MOT',         count: countByKeyword('mot') },
+  { name: 'INSURANCE',   count: countByKeyword('insurance') },
+  { name: 'LOLER',       count: countByKeyword('loler') },
+  { name: 'OTHER',       count: ALL_DOCUMENTS.filter(d =>
+      !['cscs','ipaf','mot','insurance','loler'].some(k =>
+        d.title.toLowerCase().includes(k)
+      )
+    ).length },
 ];
 
 function StatusBadge({ status, days }: { status: string; days: number }) {
