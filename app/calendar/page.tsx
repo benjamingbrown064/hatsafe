@@ -1,152 +1,133 @@
-import AppLayout from '@/components/layout/AppLayout'
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
+import AppLayout from '@/components/layout/AppLayout';
+import { ChevronLeftIcon, ChevronRightIcon, ArrowDownTrayIcon, CalendarDaysIcon } from '@heroicons/react/24/outline';
+
+const currentMonth = 'April 2026';
+const daysInMonth = 30;
+const firstDayOfWeek = 3; // Wednesday
+
+const expiryData: Record<number, { count: number; severity: 'low' | 'medium' | 'high' }> = {
+  5:  { count: 2, severity: 'low' },
+  8:  { count: 1, severity: 'high' },
+  12: { count: 4, severity: 'medium' },
+  15: { count: 3, severity: 'low' },
+  18: { count: 1, severity: 'high' },
+  22: { count: 5, severity: 'medium' },
+  25: { count: 2, severity: 'high' },
+  28: { count: 3, severity: 'low' },
+};
+
+const urgent = [
+  { date: 'Apr 8',  entity: 'AB12 CDE',      type: 'MOT',       days: 0 },
+  { date: 'Apr 10', entity: 'John Smith',     type: 'CSCS Card', days: 2 },
+  { date: 'Apr 12', entity: 'Scaffold-01',    type: 'LOLER',     days: 4 },
+  { date: 'Apr 14', entity: 'Sarah Johnson',  type: 'IPAF',      days: 6 },
+];
+
+const upcoming = [
+  { date: 'Apr 18', entity: 'FG34 HIJ',     type: 'Insurance', days: 10 },
+  { date: 'Apr 22', entity: 'Mike Davies',  type: 'First Aid', days: 14 },
+  { date: 'Apr 25', entity: 'Van-002',      type: 'Service',   days: 17 },
+  { date: 'Apr 28', entity: 'Emma Wilson',  type: 'PASMA',     days: 20 },
+];
+
+// Build calendar grid
+const calendarDays: Array<{ day: number | null; expiries?: { count: number; severity: string } | null; isToday?: boolean }> = [];
+for (let i = 0; i < firstDayOfWeek; i++) calendarDays.push({ day: null });
+for (let i = 1; i <= daysInMonth; i++) {
+  calendarDays.push({ day: i, expiries: expiryData[i] || null, isToday: i === 2 });
+}
+
+function severityStyle(severity: string): React.CSSProperties {
+  if (severity === 'high')   return { backgroundColor: '#000000', color: '#FFFFFF', borderColor: '#000000' };
+  if (severity === 'medium') return { backgroundColor: '#FFF8E1', color: '#92400E', borderColor: '#FFC107' };
+  return { backgroundColor: '#F3F3F3', color: '#474747', borderColor: '#C6C6C6' };
+}
 
 export default function CalendarPage() {
-  // Placeholder data (will be replaced with real data from Supabase)
-  const currentMonth = 'March 2026'
-  const daysInMonth = 31
-  const firstDayOfWeek = 6 // Saturday (0 = Sunday)
-
-  // Mock expiry data
-  const expiryData: Record<number, { count: number; severity: 'low' | 'medium' | 'high' }> = {
-    5: { count: 2, severity: 'low' },
-    8: { count: 1, severity: 'high' },
-    12: { count: 4, severity: 'medium' },
-    15: { count: 3, severity: 'low' },
-    18: { count: 1, severity: 'high' },
-    22: { count: 5, severity: 'medium' },
-    25: { count: 2, severity: 'high' },
-    28: { count: 3, severity: 'low' },
-  }
-
-  // Generate calendar days
-  const calendarDays = []
-  // Add empty cells for days before month starts
-  for (let i = 0; i < firstDayOfWeek; i++) {
-    calendarDays.push({ day: null, isCurrentMonth: false })
-  }
-  // Add days of the month
-  for (let i = 1; i <= daysInMonth; i++) {
-    calendarDays.push({
-      day: i,
-      isCurrentMonth: true,
-      expiries: expiryData[i] || null,
-      isToday: i === 8, // Mock today as 8th
-    })
-  }
-
-  const getSeverityColor = (severity?: 'low' | 'medium' | 'high') => {
-    switch (severity) {
-      case 'high':
-        return 'bg-red-100 border-red-400 text-red-900'
-      case 'medium':
-        return 'bg-amber-100 border-amber-400 text-amber-900'
-      case 'low':
-        return 'bg-green-100 border-green-400 text-green-900'
-      default:
-        return 'bg-white border-gray-200'
-    }
-  }
-
   return (
     <AppLayout>
-      <div className="space-y-6">
-        {/* Page header */}
+      <div className="space-y-8">
+
+        {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-semibold text-gray-900">Calendar</h1>
-            <p className="mt-2 text-sm text-gray-700">
-              Document expiry dates and renewal timeline
-            </p>
+            <p className="label-sm mb-1">EXPIRY TRACKING</p>
+            <h1>Calendar</h1>
+            <p className="mt-1">Document expiry dates and renewal timeline</p>
           </div>
-
-          {/* Month navigation */}
-          <div className="flex items-center space-x-4">
-            <button className="btn-secondary p-2">
-              <ChevronLeftIcon className="h-5 w-5" />
+          <div className="flex items-center gap-3">
+            <button className="btn btn-secondary" style={{ padding: '8px 10px' }}>
+              <ChevronLeftIcon className="w-4 h-4" strokeWidth={2} />
             </button>
-            <div className="text-lg font-semibold text-gray-900 min-w-[140px] text-center">
+            <span className="font-semibold text-sm" style={{ color: '#1A1C1C', minWidth: '110px', textAlign: 'center' }}>
               {currentMonth}
-            </div>
-            <button className="btn-secondary p-2">
-              <ChevronRightIcon className="h-5 w-5" />
+            </span>
+            <button className="btn btn-secondary" style={{ padding: '8px 10px' }}>
+              <ChevronRightIcon className="w-4 h-4" strokeWidth={2} />
             </button>
-            <button className="btn-primary">Today</button>
+            <button className="btn btn-primary">Today</button>
           </div>
         </div>
 
         {/* Legend */}
-        <div className="card">
+        <div className="card" style={{ padding: '14px 20px' }}>
           <div className="flex flex-wrap items-center gap-6">
-            <div className="text-sm font-medium text-gray-700">Legend:</div>
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 rounded bg-red-100 border border-red-400"></div>
-              <span className="text-sm text-gray-600">High Priority (≤7 days)</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 rounded bg-amber-100 border border-amber-400"></div>
-              <span className="text-sm text-gray-600">Medium (8-14 days)</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 rounded bg-green-100 border border-green-400"></div>
-              <span className="text-sm text-gray-600">Low (15-30 days)</span>
-            </div>
+            <span className="label-sm">LEGEND</span>
+            {[
+              { label: 'CRITICAL (≤7 days)',  bg: '#000000', text: '#FFFFFF' },
+              { label: 'EXPIRING (8–14 days)', bg: '#FFF8E1', text: '#92400E', border: '#FFC107' },
+              { label: 'UPCOMING (15–30 days)', bg: '#F3F3F3', text: '#474747', border: '#C6C6C6' },
+            ].map((l) => (
+              <div key={l.label} className="flex items-center gap-2">
+                <div className="w-4 h-4" style={{ backgroundColor: l.bg, borderRadius: '2px', border: `1px solid ${l.border || l.bg}` }} />
+                <span className="label-sm">{l.label}</span>
+              </div>
+            ))}
           </div>
         </div>
 
         {/* Calendar grid */}
-        <div className="card overflow-hidden p-0">
-          {/* Week day headers */}
-          <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-              <div
-                key={day}
-                className="py-3 text-center text-sm font-medium text-gray-700"
-              >
-                {day}
-              </div>
+        <div className="card-flush">
+          {/* Weekday headers */}
+          <div className="grid grid-cols-7" style={{ borderBottom: '1px solid #F3F3F3', backgroundColor: '#F9F9F9' }}>
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+              <div key={d} className="py-3 text-center label-sm">{d}</div>
             ))}
           </div>
 
-          {/* Calendar days */}
+          {/* Days */}
           <div className="grid grid-cols-7">
-            {calendarDays.map((dayData, index) => (
-              <div
-                key={index}
-                className={`
-                  min-h-[120px] border-r border-b border-gray-200 p-2
-                  ${dayData.isCurrentMonth ? 'bg-white' : 'bg-gray-50'}
-                  ${dayData.isToday ? 'ring-2 ring-primary-400' : ''}
-                  hover:bg-gray-50 transition-colors
-                `}
-              >
-                {dayData.day && (
+            {calendarDays.map((d, idx) => (
+              <div key={idx}
+                className="min-h-[100px] p-2 transition-colors cursor-pointer"
+                style={{
+                  borderRight: '1px solid #F3F3F3',
+                  borderBottom: '1px solid #F3F3F3',
+                  backgroundColor: d.isToday ? '#FFFBEA' : d.day ? '#FFFFFF' : '#F9F9F9',
+                  outline: d.isToday ? '2px solid #FFC107' : 'none',
+                  outlineOffset: '-2px',
+                }}>
+                {d.day && (
                   <>
-                    {/* Day number */}
-                    <div
-                      className={`
-                        inline-flex items-center justify-center w-7 h-7 rounded-full text-sm
-                        ${dayData.isToday
-                          ? 'bg-primary-400 text-secondary-800 font-semibold'
-                          : 'text-gray-700'
-                        }
-                      `}
-                    >
-                      {dayData.day}
+                    <div className="flex items-center justify-center w-6 h-6 mb-1"
+                      style={{
+                        borderRadius: '50%',
+                        backgroundColor: d.isToday ? '#FFC107' : 'transparent',
+                        fontSize: '12px',
+                        fontWeight: d.isToday ? 700 : 400,
+                        color: d.isToday ? '#1A1C1C' : '#474747',
+                      }}>
+                      {d.day}
                     </div>
-
-                    {/* Expiry indicator */}
-                    {dayData.expiries && (
-                      <div className="mt-2">
-                        <div
-                          className={`
-                            text-xs font-medium px-2 py-1 rounded border
-                            ${getSeverityColor(dayData.expiries.severity)}
-                            cursor-pointer hover:shadow-sm transition-shadow
-                          `}
-                        >
-                          {dayData.expiries.count} expiring
-                        </div>
+                    {d.expiries && (
+                      <div className="text-xs px-1.5 py-0.5 mt-1 font-medium"
+                        style={{
+                          borderRadius: '2px',
+                          border: '1px solid',
+                          fontSize: '10px',
+                          ...severityStyle(d.expiries.severity),
+                        }}>
+                        {d.expiries.count} expiring
                       </div>
                     )}
                   </>
@@ -156,83 +137,94 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {/* Upcoming expiries list */}
+        {/* Upcoming lists */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
           {/* Next 7 days */}
-          <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Next 7 Days</h3>
-            <div className="space-y-3">
-              {[
-                { date: 'Mar 8', entity: 'AB12 CDE', type: 'MOT', days: 0 },
-                { date: 'Mar 10', entity: 'John Smith', type: 'CSCS Card', days: 2 },
-                { date: 'Mar 12', entity: 'Scaffold-01', type: 'LOLER', days: 4 },
-                { date: 'Mar 14', entity: 'Sarah Johnson', type: 'IPAF', days: 6 },
-              ].map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:border-primary-300 transition-colors"
-                >
-                  <div>
-                    <div className="font-medium text-gray-900">{item.entity}</div>
-                    <div className="text-sm text-gray-600">{item.type}</div>
+          <div className="card-flush">
+            <div className="px-6 py-5" style={{ borderBottom: '1px solid #F3F3F3' }}>
+              <div className="label-sm mb-1">URGENT</div>
+              <h2 style={{ fontSize: '1rem' }}>Next 7 Days</h2>
+            </div>
+            <div className="divide-y" style={{ '--tw-divide-opacity': 1 } as React.CSSProperties}>
+              {urgent.map((item, i) => (
+                <div key={i} className="flex items-center justify-between px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: item.days === 0 ? '#000000' : '#F3F3F3', borderRadius: '4px' }}>
+                      <CalendarDaysIcon className="w-4 h-4" style={{ color: item.days === 0 ? '#FFFFFF' : '#474747' }} strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium" style={{ color: '#1A1C1C' }}>{item.entity}</div>
+                      <div className="text-xs" style={{ color: '#A3A3A3' }}>{item.type}</div>
+                    </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-medium text-gray-900">{item.date}</div>
-                    <div className="text-xs text-gray-600">
-                      {item.days === 0 ? 'Today' : `${item.days} days`}
+                    <div className="text-sm font-medium" style={{ color: '#1A1C1C' }}>{item.date}</div>
+                    <div className="text-xs" style={{ color: item.days === 0 ? '#1A1C1C' : '#A3A3A3', fontWeight: item.days === 0 ? 600 : 400 }}>
+                      {item.days === 0 ? 'TODAY' : `${item.days} days`}
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-            <button className="btn-primary w-full mt-4">View All Urgent</button>
+            <div className="px-6 pb-5 pt-3">
+              <button className="btn btn-black w-full text-sm">View All Urgent</button>
+            </div>
           </div>
 
           {/* Next 30 days */}
-          <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Next 30 Days</h3>
-            <div className="space-y-3">
-              {[
-                { date: 'Mar 18', entity: 'FG34 HIJ', type: 'Insurance', days: 10 },
-                { date: 'Mar 22', entity: 'Mike Davies', type: 'First Aid', days: 14 },
-                { date: 'Mar 25', entity: 'Van-002', type: 'Service', days: 17 },
-                { date: 'Mar 28', entity: 'Emma Wilson', type: 'PASMA', days: 20 },
-              ].map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:border-primary-300 transition-colors"
-                >
-                  <div>
-                    <div className="font-medium text-gray-900">{item.entity}</div>
-                    <div className="text-sm text-gray-600">{item.type}</div>
+          <div className="card-flush">
+            <div className="px-6 py-5" style={{ borderBottom: '1px solid #F3F3F3' }}>
+              <div className="label-sm mb-1">UPCOMING</div>
+              <h2 style={{ fontSize: '1rem' }}>Next 30 Days</h2>
+            </div>
+            <div className="divide-y" style={{ '--tw-divide-opacity': 1 } as React.CSSProperties}>
+              {upcoming.map((item, i) => (
+                <div key={i} className="flex items-center justify-between px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: '#F3F3F3', borderRadius: '4px' }}>
+                      <CalendarDaysIcon className="w-4 h-4" style={{ color: '#474747' }} strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium" style={{ color: '#1A1C1C' }}>{item.entity}</div>
+                      <div className="text-xs" style={{ color: '#A3A3A3' }}>{item.type}</div>
+                    </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-medium text-gray-900">{item.date}</div>
-                    <div className="text-xs text-gray-600">{item.days} days</div>
+                    <div className="text-sm font-medium" style={{ color: '#1A1C1C' }}>{item.date}</div>
+                    <div className="text-xs" style={{ color: '#A3A3A3' }}>{item.days} days</div>
                   </div>
                 </div>
               ))}
             </div>
-            <button className="btn-secondary w-full mt-4">View All Upcoming</button>
+            <div className="px-6 pb-5 pt-3">
+              <button className="btn btn-secondary w-full text-sm">View All Upcoming</button>
+            </div>
           </div>
         </div>
 
-        {/* Export options */}
+        {/* Export */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Export Calendar</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <button className="btn-secondary justify-center">
-              Download as CSV
+          <div className="label-sm mb-4">EXPORT CALENDAR</div>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button className="btn btn-secondary flex items-center gap-2">
+              <ArrowDownTrayIcon className="w-4 h-4" strokeWidth={1.5} />
+              Download CSV
             </button>
-            <button className="btn-secondary justify-center">
-              Download as PDF
+            <button className="btn btn-secondary flex items-center gap-2">
+              <ArrowDownTrayIcon className="w-4 h-4" strokeWidth={1.5} />
+              Download PDF
             </button>
-            <button className="btn-secondary justify-center">
+            <button className="btn btn-secondary flex items-center gap-2">
+              <CalendarDaysIcon className="w-4 h-4" strokeWidth={1.5} />
               Subscribe (iCal)
             </button>
           </div>
         </div>
+
       </div>
     </AppLayout>
-  )
+  );
 }
