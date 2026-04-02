@@ -2,6 +2,7 @@
 
 import AppLayout from '@/components/layout/AppLayout';
 import Link from 'next/link';
+import { useRef, useState } from 'react';
 import {
   ArrowLeftIcon,
   DocumentTextIcon,
@@ -13,6 +14,7 @@ import {
   CalendarDaysIcon,
   HashtagIcon,
   BuildingOfficeIcon,
+  CheckCircleIcon,
 } from '@heroicons/react/24/outline';
 
 // Mock document data — keyed by id
@@ -55,6 +57,51 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function DocumentProfilePage({ params }: { params: { id: string } }) {
   const doc = DOCUMENTS[params.id] ?? DOCUMENTS['1'];
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadedFile, setUploadedFile] = useState<string | null>(null);
+  const [uploading, setUploading]       = useState(false);
+
+  function handleDownload() {
+    // Generate a text-based placeholder certificate and trigger download
+    const content = [
+      `HatSafe — Document Record`,
+      `${'─'.repeat(40)}`,
+      `Document:          ${doc.title}`,
+      `Certificate No.:   ${doc.certificateNumber}`,
+      `Entity:            ${doc.entityName}`,
+      `Issuer:            ${doc.issuer}`,
+      `Issue Date:        ${doc.issueDate}`,
+      `Expiry Date:       ${doc.expiryDate ?? 'No expiry'}`,
+      `Status:            ${doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}`,
+      `${'─'.repeat(40)}`,
+      `Downloaded from HatSafe on ${new Date().toLocaleDateString('en-GB')}`,
+    ].join('\n');
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `${doc.certificateNumber}-${doc.title.replace(/\s+/g, '-')}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleUploadClick() {
+    fileInputRef.current?.click();
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    // Simulate upload delay
+    setTimeout(() => {
+      setUploadedFile(file.name);
+      setUploading(false);
+    }, 1200);
+    // Reset so same file can be re-selected if needed
+    e.target.value = '';
+  }
 
   const details = [
     { label: 'CERTIFICATE NO.',  value: doc.certificateNumber, mono: true },
@@ -104,19 +151,49 @@ export default function DocumentProfilePage({ params }: { params: { id: string }
               </div>
             </div>
             <div className="flex gap-2 flex-shrink-0">
-              <button className="btn btn-secondary flex items-center gap-2">
+              <button className="btn btn-secondary flex items-center gap-2" onClick={handleDownload}>
                 <ArrowDownTrayIcon className="w-4 h-4" strokeWidth={1.5} />
                 Download
               </button>
               {doc.expiryDate && (
-                <button className="btn btn-primary flex items-center gap-2">
-                  <ArrowUpTrayIcon className="w-4 h-4" strokeWidth={2} />
-                  Upload Renewal
+                <button
+                  className="btn btn-primary flex items-center gap-2"
+                  onClick={handleUploadClick}
+                  disabled={uploading}
+                  style={{ opacity: uploading ? 0.7 : 1 }}>
+                  {uploading
+                    ? <span style={{ fontSize: '12px' }}>Uploading…</span>
+                    : uploadedFile
+                      ? <><CheckCircleIcon className="w-4 h-4" strokeWidth={2} /> Uploaded</>
+                      : <><ArrowUpTrayIcon className="w-4 h-4" strokeWidth={2} /> Upload Renewal</>
+                  }
                 </button>
               )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                style={{ display: 'none' }}
+                onChange={handleFileChange}
+              />
             </div>
           </div>
         </div>
+
+        {/* Upload confirmation */}
+        {uploadedFile && (
+          <div className="flex items-center gap-3 px-4 py-3"
+            style={{ backgroundColor: '#F9F9F9', border: '1px solid rgba(198,198,198,0.4)', borderRadius: '4px' }}>
+            <CheckCircleIcon className="w-4 h-4 flex-shrink-0" style={{ color: '#1A1C1C' }} strokeWidth={2} />
+            <div>
+              <span className="text-sm font-medium" style={{ color: '#1A1C1C' }}>Renewal uploaded: </span>
+              <span className="text-sm font-mono" style={{ color: '#474747' }}>{uploadedFile}</span>
+            </div>
+            <button className="ml-auto label-sm" style={{ color: '#A3A3A3' }} onClick={() => setUploadedFile(null)}>
+              Dismiss
+            </button>
+          </div>
+        )}
 
         {/* Main */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -219,7 +296,8 @@ export default function DocumentProfilePage({ params }: { params: { id: string }
                       </div>
                     </div>
                     <button className="btn btn-secondary text-xs flex items-center gap-1.5"
-                      style={{ fontSize: '11px', padding: '5px 10px' }}>
+                      style={{ fontSize: '11px', padding: '5px 10px' }}
+                      onClick={handleDownload}>
                       <ArrowDownTrayIcon className="w-3 h-3" strokeWidth={2} />
                       Download
                     </button>
