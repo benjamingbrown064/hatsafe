@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   SparklesIcon,
   BellAlertIcon,
@@ -238,6 +239,17 @@ export default function MarketingPage() {
             No credit card required · Cancel anytime · Used by construction businesses across the UK
           </p>
         </div>
+
+        {/* Hero image */}
+        <div style={{ marginTop: '64px', borderRadius: '8px', overflow: 'hidden', boxShadow: '0px 40px 80px rgba(0,0,0,0.12)', position: 'relative', aspectRatio: '16/9', maxHeight: '520px' }}>
+          <Image src="/img-hero.png" alt="Site manager reviewing compliance on tablet at construction site" fill style={{ objectFit: 'cover', objectPosition: 'center' }} priority />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 60%)' }} />
+          <div style={{ position: 'absolute', bottom: '28px', left: '32px' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(255,193,7,0.95)', borderRadius: '4px', padding: '8px 14px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#1A1C1C' }}>94% fewer missed renewals in the first 3 months</span>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* ── PROBLEM ── */}
@@ -268,6 +280,12 @@ export default function MarketingPage() {
           <p style={{ marginTop: '32px', fontSize: '14px', color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}>
             The average construction business has 47 compliance documents that need active renewal management. Most businesses miss at least six renewals a year.
           </p>
+
+          {/* Team image */}
+          <div style={{ marginTop: '48px', borderRadius: '6px', overflow: 'hidden', position: 'relative', height: '320px' }}>
+            <Image src="/img-team.png" alt="Construction professionals reviewing compliance on site" fill style={{ objectFit: 'cover', objectPosition: 'center top' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.5) 0%, transparent 50%)' }} />
+          </div>
         </div>
       </section>
 
@@ -277,11 +295,17 @@ export default function MarketingPage() {
         <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: '64px', maxWidth: '600px' }}>
           Upload a certificate. AI does the rest.
         </h2>
+        {/* Compliance image */}
+        <div style={{ borderRadius: '6px', overflow: 'hidden', position: 'relative', height: '280px', marginBottom: '48px', boxShadow: '0px 20px 40px rgba(0,0,0,0.08)' }}>
+          <Image src="/img-compliance.png" alt="Compliance manager reviewing certificates" fill style={{ objectFit: 'cover', objectPosition: 'center 30%' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to left, rgba(249,249,249,0.7) 0%, transparent 60%)' }} />
+        </div>
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2px' }}>
           {[
             { step: '01', title: 'Upload', desc: 'Drag and drop a certificate, snap a photo, or email it in. HatSafe accepts PDFs, images, and scanned documents.' },
             { step: '02', title: 'AI extracts and tracks', desc: 'Our AI identifies the document type, reads the expiry date, and links it to the correct person, vehicle, or asset. No manual entry.' },
-            { step: '03', title: 'Get ahead of renewals', desc: 'Alerts at 30, 14, and 7 days before anything expires. Your dashboard shows exactly what\'s current, expiring, and overdue.' },
+            { step: '03', title: 'Get ahead of renewals', desc: "Alerts at 30, 14, and 7 days before anything expires. Your dashboard shows exactly what's current, expiring, and overdue." },
           ].map((s) => (
             <div key={s.step} style={{ backgroundColor: '#FFFFFF', borderRadius: '6px', padding: '40px 36px', boxShadow: '0px 20px 40px rgba(0,0,0,0.04)', border: '1px solid rgba(198,198,198,0.25)' }}>
               <div style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.08em', color: '#FFC107', backgroundColor: '#FFF8E1', border: '1px solid #FFC107', borderRadius: '4px', display: 'inline-block', padding: '3px 8px', marginBottom: '20px' }}>
@@ -368,6 +392,18 @@ export default function MarketingPage() {
       {/* ── TESTIMONIALS ── */}
       <section style={{ backgroundColor: '#F9F9F9', padding: '80px 32px' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+
+          {/* Worker + fleet images side by side */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px', marginBottom: '48px', borderRadius: '6px', overflow: 'hidden', height: '280px' }}>
+            <div style={{ position: 'relative', height: '280px' }}>
+              <Image src="/img-worker.png" alt="Construction worker on site with smartphone" fill style={{ objectFit: 'cover', objectPosition: 'center top' }} />
+            </div>
+            <div style={{ position: 'relative', height: '280px' }}>
+              <Image src="/img-fleet.png" alt="Fleet of construction vehicles at depot" fill style={{ objectFit: 'cover' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to left, transparent 40%, rgba(249,249,249,0.4))' }} />
+            </div>
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
             {testimonials.map((t, i) => (
               <div key={i} style={{ backgroundColor: '#FFFFFF', borderRadius: '6px', padding: '32px', boxShadow: '0px 20px 40px rgba(0,0,0,0.04)', border: '1px solid rgba(198,198,198,0.25)' }}>
