@@ -3,11 +3,14 @@
 import AppLayout from '@/components/layout/AppLayout';
 import ExpiryAlerts from '@/components/dashboard/ExpiryAlerts';
 import AISuggestions from '@/components/dashboard/AISuggestions';
+import Link from 'next/link';
+import { useRef, useState } from 'react';
 import {
   ArrowUpRightIcon,
   UserPlusIcon,
-  ArrowDownTrayIcon,
   DocumentTextIcon,
+  TruckIcon,
+  CheckCircleIcon,
 } from '@heroicons/react/24/outline';
 
 import { MOCK_DOCUMENTS } from '@/lib/mockData';
@@ -18,6 +21,16 @@ const valid        = MOCK_DOCUMENTS.filter(d => d.status === 'valid').length;
 const pendingReview = 4;
 
 export default function DashboardPage() {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploaded, setUploaded] = useState(false);
+
+  function handleUploadClick() { fileInputRef.current?.click(); }
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!e.target.files?.[0]) return;
+    setUploaded(true);
+    setTimeout(() => setUploaded(false), 3000);
+    e.target.value = '';
+  }
   const stats4 = [
     { label: 'EXPIRED',        value: String(expired),      urgent: true },
     { label: 'EXPIRING SOON',  value: String(expiringSoon), urgent: false },
@@ -97,27 +110,66 @@ export default function DashboardPage() {
             <div className="card" style={{ padding: '20px' }}>
               <div className="label-sm mb-4">QUICK ACTIONS</div>
               <div className="space-y-2">
-                {[
-                  { icon: UserPlusIcon, label: 'Add Person', sub: 'Register new worker' },
-                  { icon: DocumentTextIcon, label: 'Upload Document', sub: 'Cert, licence, MOT…' },
-                  { icon: ArrowDownTrayIcon, label: 'Export Report', sub: 'Compliance summary' },
-                ].map((a) => (
-                  <button key={a.label}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors"
-                    style={{ borderRadius: '4px' }}
-                    onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F3F3F3')}
-                    onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
-                    <div className="w-8 h-8 flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: '#F3F3F3', borderRadius: '4px' }}>
-                      <a.icon className="w-4 h-4" style={{ color: '#1A1C1C' }} strokeWidth={1.5} />
+
+                {/* Add Person → /people */}
+                <Link href="/people"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 transition-colors"
+                  style={{ borderRadius: '4px', textDecoration: 'none', display: 'flex' }}
+                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F3F3F3')}
+                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+                  <div className="w-8 h-8 flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: '#F3F3F3', borderRadius: '4px' }}>
+                    <UserPlusIcon className="w-4 h-4" style={{ color: '#1A1C1C' }} strokeWidth={1.5} />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium" style={{ color: '#1A1C1C' }}>Add Person</div>
+                    <div className="text-xs" style={{ color: '#A3A3A3' }}>Register new worker</div>
+                  </div>
+                </Link>
+
+                {/* Upload Document → file picker */}
+                <button
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors"
+                  style={{ borderRadius: '4px' }}
+                  onClick={handleUploadClick}
+                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F3F3F3')}
+                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+                  <div className="w-8 h-8 flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: uploaded ? '#000000' : '#F3F3F3', borderRadius: '4px' }}>
+                    {uploaded
+                      ? <CheckCircleIcon className="w-4 h-4" style={{ color: '#FFC107' }} strokeWidth={2} />
+                      : <DocumentTextIcon className="w-4 h-4" style={{ color: '#1A1C1C' }} strokeWidth={1.5} />
+                    }
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium" style={{ color: '#1A1C1C' }}>
+                      {uploaded ? 'Document Uploaded ✓' : 'Upload Document'}
                     </div>
-                    <div>
-                      <div className="text-sm font-medium" style={{ color: '#1A1C1C' }}>{a.label}</div>
-                      <div className="text-xs" style={{ color: '#A3A3A3' }}>{a.sub}</div>
-                    </div>
-                  </button>
-                ))}
+                    <div className="text-xs" style={{ color: '#A3A3A3' }}>Cert, licence, MOT…</div>
+                  </div>
+                </button>
+
+                {/* Add Vehicle → /vehicles */}
+                <Link href="/vehicles"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 transition-colors"
+                  style={{ borderRadius: '4px', textDecoration: 'none', display: 'flex' }}
+                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F3F3F3')}
+                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+                  <div className="w-8 h-8 flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: '#F3F3F3', borderRadius: '4px' }}>
+                    <TruckIcon className="w-4 h-4" style={{ color: '#1A1C1C' }} strokeWidth={1.5} />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium" style={{ color: '#1A1C1C' }}>Add Vehicle</div>
+                    <div className="text-xs" style={{ color: '#A3A3A3' }}>Register fleet vehicle</div>
+                  </div>
+                </Link>
+
               </div>
+
+              {/* Hidden file input */}
+              <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                style={{ display: 'none' }} onChange={handleFileChange} />
             </div>
           </div>
         </div>
