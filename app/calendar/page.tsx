@@ -131,6 +131,81 @@ function CalendarInner() {
   const searchParams = useSearchParams();
   const [showAllUrgent,   setShowAllUrgent]   = useState(false);
   const [showAllUpcoming, setShowAllUpcoming] = useState(false);
+  const [icalCopied, setIcalCopied] = useState(false);
+
+  // ── Export helpers ───────────────────────────────────────────────────────
+  function exportCsv() {
+    const allItems = Object.entries(expiryData).flatMap(([dayStr, dayData]) =>
+      dayData.items.map(item => ({
+        Day: `${months[month]} ${dayStr} ${year}`,
+        Entity: item.entity,
+        'Document Type': item.type,
+        'Entity Type': item.entityType,
+        'Days Until Expiry': item.daysLeft,
+        Status: item.status,
+      }))
+    ).sort((a, b) => a['Days Until Expiry'] - b['Days Until Expiry']);
+
+    const headers = Object.keys(allItems[0]);
+    function esc(v: unknown) {
+      const s = String(v ?? '');
+      return s.includes(',') || s.includes('"') ? `"${s.replace(/"/g, '""')}"` : s;
+    }
+    const csv = [headers.join(','), ...allItems.map(r => headers.map(h => esc(r[h as keyof typeof r])).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a'); a.href = url;
+    a.download = `hatsafe-calendar-${year}-${String(month + 1).padStart(2, '0')}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+  }
+
+  function exportIcal() {
+    // Build a proper .ics file — importable into Google Calendar, Outlook, Apple Calendar
+    const lines = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//HatSafe//Compliance Calendar//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'X-WR-CALNAME:HatSafe Compliance',
+      'X-WR-CALDESC:Document expiry dates from HatSafe',
+    ];
+
+    Object.entries(expiryData).forEach(([dayStr, dayData]) => {
+      const d = parseInt(dayStr, 10);
+      const dateStr = `${year}${String(month + 1).padStart(2, '0')}${String(d).padStart(2, '0')}`;
+      dayData.items.forEach((item, i) => {
+        const uid = `hatsafe-${dateStr}-${i}@hatsafe.com`;
+        const summary = `${item.type} – ${item.entity}`;
+        const description = `Status: ${item.status}\\nDays until expiry: ${item.daysLeft}\\nEntity type: ${item.entityType}`;
+        lines.push(
+          'BEGIN:VEVENT',
+          `UID:${uid}`,
+          `DTSTART;VALUE=DATE:${dateStr}`,
+          `DTEND;VALUE=DATE:${dateStr}`,
+          `SUMMARY:${summary}`,
+          `DESCRIPTION:${description}`,
+          item.status === 'expired' || item.daysLeft <= 7 ? 'PRIORITY:1' : 'PRIORITY:5',
+          'END:VEVENT',
+        );
+      });
+    });
+
+    lines.push('END:VCALENDAR');
+
+    const ics  = lines.join('\r\n');
+    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a'); a.href = url;
+    a.download = `hatsafe-calendar-${year}-${String(month + 1).padStart(2, '0')}.ics`;
+    a.click(); URL.revokeObjectURL(url);
+    setIcalCopied(true);
+    setTimeout(() => setIcalCopied(false), 3000);
+  }
+
+  function exportPdf() {
+    window.print();
+  }
   const [year,  setYear]  = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth()); // 0-indexed
   const [selectedDay, setSelectedDay] = useState<number | null>(() => {
@@ -457,21 +532,30 @@ function CalendarInner() {
 
         {/* Export */}
         <div className="card">
-          <div className="label-sm mb-4">EXPORT CALENDAR</div>
+          <div className="label-sm mb-2">EXPORT CALENDAR</div>
+          <p className="mb-5" style={{ fontSize: '13px', color: '#A3A3A3' }}>
+            Export expiry dates for {months[month]} {year}
+          </p>
           <div className="flex flex-col sm:flex-row gap-3">
-            <button className="btn btn-secondary flex items-center gap-2">
+            <button className="btn btn-secondary flex items-center gap-2" onClick={exportCsv}>
               <ArrowDownTrayIcon className="w-4 h-4" strokeWidth={1.5} />
               Download CSV
             </button>
-            <button className="btn btn-secondary flex items-center gap-2">
+            <button className="btn btn-secondary flex items-center gap-2" onClick={exportPdf}>
               <ArrowDownTrayIcon className="w-4 h-4" strokeWidth={1.5} />
               Download PDF
             </button>
-            <button className="btn btn-secondary flex items-center gap-2">
+            <button className="btn btn-secondary flex items-center gap-2" onClick={exportIcal}
+              style={icalCopied ? { backgroundColor: '#F3F3F3' } : {}}>
               <CalendarDaysIcon className="w-4 h-4" strokeWidth={1.5} />
-              Subscribe (iCal)
+              {icalCopied ? 'iCal Downloaded ✓' : 'Download iCal'}
             </button>
           </div>
+          {icalCopied && (
+            <p className="mt-3 text-xs" style={{ color: '#474747' }}>
+              ✓ Open the .ics file to import into Google Calendar, Outlook, or Apple Calendar
+            </p>
+          )}
         </div>
 
       </div>
