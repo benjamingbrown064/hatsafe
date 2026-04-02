@@ -1,307 +1,301 @@
-import AppLayout from '@/components/layout/AppLayout'
+'use client';
+
+import AppLayout from '@/components/layout/AppLayout';
+import Link from 'next/link';
 import {
   PencilIcon,
   DocumentTextIcon,
   PlusIcon,
   ArrowLeftIcon,
-} from '@heroicons/react/24/outline'
-import Link from 'next/link'
+  EnvelopeIcon,
+  PhoneIcon,
+  MapPinIcon,
+  UserGroupIcon,
+  ArrowDownTrayIcon,
+  ArrowUpTrayIcon,
+  ClockIcon,
+} from '@heroicons/react/24/outline';
+
+// Mock data keyed by id
+const PEOPLE: Record<string, {
+  id: string; name: string; role: string; team: string; site: string;
+  manager: string; employmentStatus: string;
+  contactEmail: string; contactPhone: string;
+}> = {
+  '1':  { id: '1',  name: 'John Smith',    role: 'Carpenter',        team: 'Site A Team', site: 'Site A – Manchester', manager: 'Mike Davies', employmentStatus: 'active', contactEmail: 'john.smith@company.com',    contactPhone: '+44 7700 900123' },
+  '2':  { id: '2',  name: 'Sarah Johnson', role: 'Electrician',      team: 'Site B Team', site: 'Site B – Leeds',      manager: 'Diane Foster',employmentStatus: 'active', contactEmail: 'sarah.johnson@company.com', contactPhone: '+44 7700 900456' },
+  '3':  { id: '3',  name: 'Mike Davies',   role: 'Site Manager',     team: 'Site A Team', site: 'Site A – Manchester', manager: 'Pam Dixon',   employmentStatus: 'active', contactEmail: 'mike.davies@company.com',   contactPhone: '+44 7700 900789' },
+  '4':  { id: '4',  name: 'Emma Wilson',   role: 'Labourer',         team: 'Site C Team', site: 'Site C – Sheffield',  manager: 'Mike Davies', employmentStatus: 'active', contactEmail: 'emma.wilson@company.com',   contactPhone: '+44 7700 900012' },
+  '5':  { id: '5',  name: 'James Brown',   role: 'Scaffolder',       team: 'Site B Team', site: 'Site B – Leeds',      manager: 'Diane Foster',employmentStatus: 'active', contactEmail: 'james.brown@company.com',   contactPhone: '+44 7700 900345' },
+};
+
+const DOCS_BY_PERSON: Record<string, Array<{
+  id: string; title: string; issuer: string; certificateNumber: string;
+  issueDate: string; expiryDate: string; status: string; daysUntilExpiry: number;
+}>> = {
+  '1': [
+    { id: '1', title: 'CSCS Card',            issuer: 'CITB',               certificateNumber: 'CSCS123456',   issueDate: '2024-01-15', expiryDate: '2029-01-15', status: 'valid',    daysUntilExpiry: 1095 },
+    { id: '2', title: 'IPAF Certificate',     issuer: 'IPAF',               certificateNumber: 'IPAF456789',   issueDate: '2023-06-20', expiryDate: '2026-04-19', status: 'expiring', daysUntilExpiry: 17 },
+    { id: '3', title: 'First Aid Certificate',issuer: 'St John Ambulance',  certificateNumber: 'FA2024-1234',  issueDate: '2024-02-01', expiryDate: '2027-02-01', status: 'valid',    daysUntilExpiry: 703 },
+  ],
+  '2': [
+    { id: '4', title: 'CSCS Card',            issuer: 'CITB',               certificateNumber: 'CSCS789012',   issueDate: '2023-09-01', expiryDate: '2028-09-01', status: 'valid',    daysUntilExpiry: 880 },
+    { id: '5', title: 'IPAF Certificate',     issuer: 'IPAF',               certificateNumber: 'IPAF-AC-2024', issueDate: '2024-03-01', expiryDate: '2027-03-01', status: 'valid',    daysUntilExpiry: 335 },
+    { id: '6', title: '18th Edition Wiring',  issuer: 'City & Guilds',      certificateNumber: 'CG-18E-2023',  issueDate: '2023-05-01', expiryDate: '2028-05-01', status: 'valid',    daysUntilExpiry: 760 },
+    { id: '7', title: 'ECS Card',             issuer: 'JIB',                certificateNumber: 'ECS-SJ-2024',  issueDate: '2024-01-01', expiryDate: '2026-04-10', status: 'expiring', daysUntilExpiry: 8 },
+    { id: '8', title: 'First Aid',            issuer: 'St John Ambulance',  certificateNumber: 'FA-SJ-2024',   issueDate: '2024-06-01', expiryDate: '2027-06-01', status: 'valid',    daysUntilExpiry: 425 },
+  ],
+  '3': [
+    { id: '9',  title: 'CSCS Card',           issuer: 'CITB',               certificateNumber: 'CSCS345678',   issueDate: '2022-05-01', expiryDate: '2025-05-01', status: 'expired',  daysUntilExpiry: -330 },
+    { id: '10', title: 'SMSTS',               issuer: 'CIOB',               certificateNumber: 'SMSTS-MD-2021',issueDate: '2021-09-01', expiryDate: '2026-09-01', status: 'valid',    daysUntilExpiry: 517 },
+    { id: '11', title: 'First Aid',           issuer: 'St John Ambulance',  certificateNumber: 'FA-MD-2024',   issueDate: '2024-03-01', expiryDate: '2027-03-01', status: 'valid',    daysUntilExpiry: 335 },
+    { id: '12', title: 'Asbestos Awareness',  issuer: 'Citrus Training',    certificateNumber: 'ASBES-2024',   issueDate: '2024-01-01', expiryDate: '2025-01-01', status: 'expired',  daysUntilExpiry: -92 },
+  ],
+};
+
+const activity = [
+  { action: 'Document uploaded',  detail: 'CSCS Card',         time: '2 hours ago',  user: 'Admin User' },
+  { action: 'Profile updated',    detail: 'Team changed',      time: '1 day ago',    user: 'Mike Davies' },
+  { action: 'Document approved',  detail: 'IPAF Certificate',  time: '3 days ago',   user: 'Admin User' },
+];
+
+function initials(name: string) {
+  return name.split(' ').map(n => n[0]).join('');
+}
+
+function DocBadge({ status, days }: { status: string; days: number }) {
+  if (status === 'valid')    return <span className="badge badge-valid">Valid · {days}d</span>;
+  if (status === 'expiring') return <span className="badge badge-expiring">Expiring · {days}d</span>;
+  return <span className="badge badge-expired">Overdue {Math.abs(days)}d</span>;
+}
 
 export default function PersonProfilePage({ params }: { params: { id: string } }) {
-  // Placeholder data (will be replaced with real data from Supabase)
-  const person = {
-    id: params.id,
-    name: 'John Smith',
-    role: 'Carpenter',
-    team: 'Site A Team',
-    site: 'Site A - Manchester',
-    manager: 'Mike Davies',
-    employmentStatus: 'active',
-    contactEmail: 'john.smith@company.com',
-    contactPhone: '+44 7700 900123',
-    photoUrl: null,
-  }
+  const person    = PEOPLE[params.id]    ?? PEOPLE['1'];
+  const documents = DOCS_BY_PERSON[params.id] ?? DOCS_BY_PERSON['1'];
 
-  const documents = [
-    {
-      id: '1',
-      title: 'CSCS Card',
-      issuer: 'CITB',
-      certificateNumber: 'CSCS123456',
-      issueDate: '2024-01-15',
-      expiryDate: '2029-01-15',
-      status: 'valid',
-      daysUntilExpiry: 1095,
-    },
-    {
-      id: '2',
-      title: 'IPAF Certificate',
-      issuer: 'IPAF',
-      certificateNumber: 'IPAF456789',
-      issueDate: '2023-06-20',
-      expiryDate: '2026-03-25',
-      status: 'expiring',
-      daysUntilExpiry: 17,
-    },
-    {
-      id: '3',
-      title: 'First Aid Certificate',
-      issuer: 'St John Ambulance',
-      certificateNumber: 'FA2024-1234',
-      issueDate: '2024-02-01',
-      expiryDate: '2027-02-01',
-      status: 'valid',
-      daysUntilExpiry: 703,
-    },
-  ]
-
-  const getStatusBadge = (status: string, daysUntil: number) => {
-    switch (status) {
-      case 'valid':
-        return <span className="badge-valid">Valid ({daysUntil} days)</span>
-      case 'expiring':
-        return <span className="badge-expiring">Expiring ({daysUntil} days)</span>
-      case 'expired':
-        return <span className="badge-expired">Overdue ({Math.abs(daysUntil)} days)</span>
-      default:
-        return <span className="badge-missing">Unknown</span>
-    }
-  }
-
-  // Calculate compliance status
-  const hasExpired = documents.some(d => d.status === 'expired')
-  const hasExpiring = documents.some(d => d.status === 'expiring')
-  const complianceStatus = hasExpired ? 'expired' : hasExpiring ? 'expiring' : 'valid'
+  const hasExpired  = documents.some(d => d.status === 'expired');
+  const hasExpiring = documents.some(d => d.status === 'expiring');
+  const complianceStatus = hasExpired ? 'expired' : hasExpiring ? 'expiring' : 'valid';
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        {/* Back button */}
-        <Link href="/people" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900">
-          <ArrowLeftIcon className="h-4 w-4 mr-2" />
+      <div className="space-y-8">
+
+        {/* Back */}
+        <Link href="/people" className="inline-flex items-center gap-2 text-sm"
+          style={{ color: '#474747', textDecoration: 'none' }}>
+          <ArrowLeftIcon className="w-4 h-4" strokeWidth={1.5} />
           Back to People
         </Link>
 
-        {/* Profile header */}
+        {/* Header */}
         <div className="card">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-start space-x-4">
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-6">
+            <div className="flex items-start gap-5">
               {/* Avatar */}
-              <div className="flex-shrink-0">
-                <div className="h-20 w-20 rounded-full bg-gray-200 flex items-center justify-center text-2xl font-medium text-gray-600">
-                  {person.name.split(' ').map(n => n[0]).join('')}
-                </div>
+              <div className="w-14 h-14 flex items-center justify-center flex-shrink-0 font-bold text-lg"
+                style={{ backgroundColor: '#1A1C1C', borderRadius: '6px', color: '#FFFFFF' }}>
+                {initials(person.name)}
               </div>
-
-              {/* Basic info */}
               <div>
-                <h1 className="text-3xl font-semibold text-gray-900">{person.name}</h1>
-                <p className="text-lg text-gray-600 mt-1">{person.role}</p>
-                <div className="flex items-center space-x-4 mt-2">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                    person.employmentStatus === 'active' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {person.employmentStatus === 'active' ? 'Active' : 'Inactive'}
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1A1C1C' }}>{person.name}</h1>
+                  <span className="badge badge-outline"
+                    style={person.employmentStatus === 'active'
+                      ? { backgroundColor: '#F3F3F3', color: '#1A1C1C', border: '1px solid #C6C6C6' }
+                      : {}}>
+                    {person.employmentStatus === 'active' ? 'ACTIVE' : 'INACTIVE'}
                   </span>
-                  {complianceStatus === 'valid' && (
-                    <span className="badge-valid">Compliant</span>
-                  )}
-                  {complianceStatus === 'expiring' && (
-                    <span className="badge-expiring">Expiring Soon</span>
-                  )}
-                  {complianceStatus === 'expired' && (
-                    <span className="badge-expired">Non-Compliant</span>
-                  )}
+                  {complianceStatus === 'valid'    && <span className="badge badge-valid">Compliant</span>}
+                  {complianceStatus === 'expiring' && <span className="badge badge-expiring">Expiring Soon</span>}
+                  {complianceStatus === 'expired'  && <span className="badge badge-expired">Non-Compliant</span>}
+                </div>
+                <p className="mt-1" style={{ color: '#474747', fontSize: '15px' }}>{person.role}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <MapPinIcon className="w-3.5 h-3.5" style={{ color: '#A3A3A3' }} strokeWidth={1.5} />
+                  <span className="text-xs" style={{ color: '#A3A3A3' }}>{person.site}</span>
                 </div>
               </div>
             </div>
-
-            {/* Actions */}
-            <div className="flex space-x-3">
-              <button className="btn-secondary flex items-center space-x-2">
-                <PencilIcon className="h-5 w-5" />
-                <span>Edit</span>
+            <div className="flex gap-2 flex-shrink-0">
+              <button className="btn btn-secondary flex items-center gap-2">
+                <PencilIcon className="w-4 h-4" strokeWidth={1.5} />
+                Edit
               </button>
-              <button className="btn-primary flex items-center space-x-2">
-                <PlusIcon className="h-5 w-5" />
-                <span>Add Document</span>
+              <button className="btn btn-primary flex items-center gap-2">
+                <PlusIcon className="w-4 h-4" strokeWidth={2} />
+                Add Document
               </button>
             </div>
           </div>
         </div>
 
-        {/* Details grid */}
+        {/* Main grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left column - Details */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Contact information */}
+
+          {/* Left sidebar */}
+          <div className="space-y-4">
+
+            {/* Contact */}
             <div className="card">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Contact Information</h2>
-              <dl className="space-y-3">
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Email</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{person.contactEmail || 'Not provided'}</dd>
+              <div className="label-sm mb-4">CONTACT</div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-7 h-7 flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: '#F3F3F3', borderRadius: '4px' }}>
+                    <EnvelopeIcon className="w-3.5 h-3.5" style={{ color: '#474747' }} strokeWidth={1.5} />
+                  </div>
+                  <span className="text-sm" style={{ color: '#1A1C1C' }}>{person.contactEmail}</span>
                 </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Phone</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{person.contactPhone || 'Not provided'}</dd>
+                <div className="flex items-center gap-3">
+                  <div className="w-7 h-7 flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: '#F3F3F3', borderRadius: '4px' }}>
+                    <PhoneIcon className="w-3.5 h-3.5" style={{ color: '#474747' }} strokeWidth={1.5} />
+                  </div>
+                  <span className="text-sm" style={{ color: '#1A1C1C' }}>{person.contactPhone}</span>
                 </div>
-              </dl>
+              </div>
             </div>
 
             {/* Work details */}
             <div className="card">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Work Details</h2>
+              <div className="label-sm mb-4">WORK DETAILS</div>
               <dl className="space-y-3">
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Team</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{person.team}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Site</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{person.site}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Manager</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{person.manager}</dd>
-                </div>
+                {[
+                  { label: 'Team',    value: person.team,    Icon: UserGroupIcon },
+                  { label: 'Site',    value: person.site,    Icon: MapPinIcon },
+                  { label: 'Manager', value: person.manager, Icon: null },
+                ].map((row) => (
+                  <div key={row.label} className="flex items-start justify-between gap-4">
+                    <dt style={{ fontSize: '12px', color: '#A3A3A3', flexShrink: 0 }}>{row.label}</dt>
+                    <dd style={{ fontSize: '13px', color: '#1A1C1C', fontWeight: 500, textAlign: 'right' }}>{row.value}</dd>
+                  </div>
+                ))}
               </dl>
             </div>
 
             {/* Compliance summary */}
             <div className="card">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Compliance Summary</h2>
+              <div className="label-sm mb-4">COMPLIANCE SUMMARY</div>
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Total Documents</span>
-                  <span className="text-lg font-semibold text-gray-900">{documents.length}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Valid</span>
-                  <span className="text-lg font-semibold text-green-600">
-                    {documents.filter(d => d.status === 'valid').length}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Expiring Soon</span>
-                  <span className="text-lg font-semibold text-amber-600">
-                    {documents.filter(d => d.status === 'expiring').length}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Expired</span>
-                  <span className="text-lg font-semibold text-red-600">
-                    {documents.filter(d => d.status === 'expired').length}
-                  </span>
-                </div>
+                {[
+                  { label: 'Total Documents', value: documents.length },
+                  { label: 'Valid',           value: documents.filter(d => d.status === 'valid').length },
+                  { label: 'Expiring Soon',   value: documents.filter(d => d.status === 'expiring').length },
+                  { label: 'Expired',         value: documents.filter(d => d.status === 'expired').length },
+                ].map((row) => (
+                  <div key={row.label} className="flex items-center justify-between">
+                    <span style={{ fontSize: '13px', color: '#474747' }}>{row.label}</span>
+                    <span style={{ fontSize: '18px', fontWeight: 700, color: '#1A1C1C' }}>{row.value}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* Right column - Documents */}
-          <div className="lg:col-span-2">
-            <div className="card">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Documents</h2>
-                <button className="text-sm text-primary-600 hover:text-primary-900">
-                  View All
+          {/* Right — documents */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="card-flush">
+              <div className="flex items-center justify-between px-6 py-5"
+                style={{ borderBottom: '1px solid #F3F3F3' }}>
+                <div>
+                  <div className="label-sm mb-1">ATTACHED</div>
+                  <h2 style={{ fontSize: '1rem' }}>Documents & Certifications</h2>
+                </div>
+                <button className="btn btn-primary flex items-center gap-2"
+                  style={{ fontSize: '12px', padding: '7px 12px' }}>
+                  <PlusIcon className="w-3.5 h-3.5" strokeWidth={2} />
+                  Upload
                 </button>
               </div>
 
-              <div className="space-y-4">
-                {documents.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className="border border-gray-200 rounded-lg p-4 hover:border-primary-300 transition-colors"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-3 flex-1">
-                        <div className="flex-shrink-0">
-                          <DocumentTextIcon className="h-10 w-10 text-gray-400" />
+              {documents.length === 0 ? (
+                <div className="empty-state">
+                  <DocumentTextIcon className="empty-state-icon" strokeWidth={1} />
+                  <div className="label-sm mb-1">NO DOCUMENTS</div>
+                  <p style={{ fontSize: '13px', color: '#A3A3A3' }}>Upload the first document for this person</p>
+                </div>
+              ) : (
+                <div>
+                  {documents.map((doc, i) => (
+                    <div key={doc.id} className="px-6 py-5"
+                      style={{ borderBottom: i < documents.length - 1 ? '1px solid #F3F3F3' : 'none' }}>
+                      <div className="flex items-start gap-4">
+                        <div className="w-9 h-9 flex items-center justify-center flex-shrink-0"
+                          style={{ backgroundColor: '#F3F3F3', borderRadius: '4px' }}>
+                          <DocumentTextIcon className="w-4 h-4" style={{ color: '#474747' }} strokeWidth={1.5} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h3 className="text-sm font-medium text-gray-900">{doc.title}</h3>
-                            {getStatusBadge(doc.status, doc.daysUntilExpiry)}
+                          <div className="flex items-center justify-between gap-3 flex-wrap">
+                            <h3 className="font-medium text-sm" style={{ color: '#1A1C1C' }}>{doc.title}</h3>
+                            <DocBadge status={doc.status} days={doc.daysUntilExpiry} />
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">{doc.issuer}</p>
-                          <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                          <p className="text-xs mt-1" style={{ color: '#A3A3A3' }}>{doc.issuer}</p>
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-3">
                             <div>
-                              <dt className="text-gray-500">Certificate No.</dt>
-                              <dd className="text-gray-900 font-mono">{doc.certificateNumber}</dd>
+                              <div className="label-sm" style={{ fontSize: '9px' }}>CERT. NO.</div>
+                              <div className="text-xs font-mono" style={{ color: '#474747' }}>{doc.certificateNumber}</div>
                             </div>
                             <div>
-                              <dt className="text-gray-500">Issue Date</dt>
-                              <dd className="text-gray-900">{doc.issueDate}</dd>
+                              <div className="label-sm" style={{ fontSize: '9px' }}>EXPIRY DATE</div>
+                              <div className="text-xs font-medium" style={{ color: '#1A1C1C' }}>{doc.expiryDate}</div>
                             </div>
-                            <div>
-                              <dt className="text-gray-500">Expiry Date</dt>
-                              <dd className="text-gray-900 font-medium">{doc.expiryDate}</dd>
-                            </div>
-                          </dl>
+                          </div>
+                          <div className="flex gap-2 mt-3">
+                            <Link href={`/documents/${doc.id}`}
+                              className="btn btn-secondary flex items-center gap-1.5"
+                              style={{ fontSize: '11px', padding: '5px 10px', textDecoration: 'none', display: 'inline-flex' }}>
+                              View
+                            </Link>
+                            <button className="btn btn-secondary flex items-center gap-1.5"
+                              style={{ fontSize: '11px', padding: '5px 10px' }}>
+                              <ArrowDownTrayIcon className="w-3 h-3" strokeWidth={2} />
+                              Download
+                            </button>
+                            <button className="btn btn-ghost flex items-center gap-1.5"
+                              style={{ fontSize: '11px', padding: '5px 10px' }}>
+                              <ArrowUpTrayIcon className="w-3 h-3" strokeWidth={2} />
+                              Upload Renewal
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                    <div className="mt-4 flex space-x-3">
-                      <button className="text-sm text-primary-600 hover:text-primary-900">
-                        View
-                      </button>
-                      <button className="text-sm text-gray-600 hover:text-gray-900">
-                        Download
-                      </button>
-                      <button className="text-sm text-gray-600 hover:text-gray-900">
-                        Upload Renewal
-                      </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Activity */}
+            <div className="card-flush">
+              <div className="px-6 py-5" style={{ borderBottom: '1px solid #F3F3F3' }}>
+                <div className="label-sm mb-1">HISTORY</div>
+                <h2 style={{ fontSize: '1rem' }}>Recent Activity</h2>
+              </div>
+              <div className="p-6 space-y-4">
+                {activity.map((a, i) => (
+                  <div key={i} className="flex items-start gap-4">
+                    <div className="w-8 h-8 flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: '#F3F3F3', borderRadius: '4px' }}>
+                      <ClockIcon className="w-4 h-4" style={{ color: '#474747' }} strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <div className="text-sm" style={{ color: '#1A1C1C' }}>
+                        <span className="font-medium">{a.action}</span>
+                        <span style={{ color: '#474747' }}> — {a.detail}</span>
+                      </div>
+                      <div className="text-xs mt-0.5" style={{ color: '#A3A3A3' }}>
+                        {a.time} · {a.user}
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
-
-              {/* Empty state if no documents */}
-              {documents.length === 0 && (
-                <div className="text-center py-12">
-                  <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No documents</h3>
-                  <p className="mt-1 text-sm text-gray-500">Get started by uploading a document.</p>
-                  <div className="mt-6">
-                    <button className="btn-primary">
-                      Upload First Document
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
 
-        {/* Activity timeline (placeholder) */}
-        <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h2>
-          <div className="space-y-3">
-            {[
-              { action: 'Document uploaded', detail: 'CSCS Card', time: '2 hours ago', user: 'Admin User' },
-              { action: 'Profile updated', detail: 'Team changed to Site A', time: '1 day ago', user: 'Mike Davies' },
-              { action: 'Document approved', detail: 'IPAF Certificate', time: '3 days ago', user: 'Admin User' },
-            ].map((activity, index) => (
-              <div key={index} className="flex items-start space-x-3 text-sm">
-                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary-50 flex items-center justify-center">
-                  <DocumentTextIcon className="h-4 w-4 text-primary-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-gray-900">
-                    <span className="font-medium">{activity.action}</span> - {activity.detail}
-                  </p>
-                  <p className="text-gray-500 text-xs mt-1">
-                    {activity.time} by {activity.user}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </AppLayout>
-  )
+  );
 }
