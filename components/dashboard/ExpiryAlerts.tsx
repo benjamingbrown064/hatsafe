@@ -1,205 +1,204 @@
 'use client';
 
-import { AlertTriangle, Clock, CheckCircle, XCircle, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import {
+  UserIcon,
+  TruckIcon,
+  WrenchScrewdriverIcon,
+  DocumentTextIcon,
+  ArrowUpRightIcon,
+} from '@heroicons/react/24/outline';
+
+type Severity = 'critical' | 'warning' | 'info';
+type EntityType = 'person' | 'vehicle' | 'asset';
 
 interface Alert {
   id: string;
-  severity: 'critical' | 'warning' | 'info';
+  severity: Severity;
   title: string;
   description: string;
   entityName: string;
-  entityType: 'person' | 'vehicle' | 'asset';
+  entityType: EntityType;
   documentType: string;
   expiryDate: string;
   daysUntilExpiry: number;
   actionUrl: string;
 }
 
+const alerts: Alert[] = [
+  {
+    id: '1',
+    severity: 'critical',
+    title: 'CSCS Card Expired',
+    description: 'Cannot work on site without valid certification',
+    entityName: 'John Smith',
+    entityType: 'person',
+    documentType: 'CSCS Card',
+    expiryDate: '2026-02-01',
+    daysUntilExpiry: -7,
+    actionUrl: '/people/1',
+  },
+  {
+    id: '2',
+    severity: 'critical',
+    title: 'MOT Due in 3 Days',
+    description: 'Vehicle cannot be driven legally after expiry',
+    entityName: 'AB12 CDE',
+    entityType: 'vehicle',
+    documentType: 'MOT Certificate',
+    expiryDate: '2026-04-05',
+    daysUntilExpiry: 3,
+    actionUrl: '/vehicles/1',
+  },
+  {
+    id: '3',
+    severity: 'warning',
+    title: 'Insurance Renewal in 14 Days',
+    description: 'Schedule renewal to avoid lapse in cover',
+    entityName: 'FG34 HIJ',
+    entityType: 'vehicle',
+    documentType: 'Vehicle Insurance',
+    expiryDate: '2026-04-16',
+    daysUntilExpiry: 14,
+    actionUrl: '/vehicles/2',
+  },
+  {
+    id: '4',
+    severity: 'warning',
+    title: 'LOLER Inspection Due',
+    description: 'Statutory inspection required before continued use',
+    entityName: 'SCAF-001',
+    entityType: 'asset',
+    documentType: 'LOLER Inspection',
+    expiryDate: '2026-04-14',
+    daysUntilExpiry: 12,
+    actionUrl: '/assets/1',
+  },
+];
+
+function EntityIcon({ type }: { type: EntityType }) {
+  const cls = 'w-4 h-4 flex-shrink-0';
+  const s = { color: '#474747' };
+  if (type === 'vehicle') return <TruckIcon className={cls} style={s} strokeWidth={1.5} />;
+  if (type === 'asset')   return <WrenchScrewdriverIcon className={cls} style={s} strokeWidth={1.5} />;
+  return <UserIcon className={cls} style={s} strokeWidth={1.5} />;
+}
+
+function daysLabel(days: number) {
+  if (days < 0)  return `Overdue ${Math.abs(days)}d`;
+  if (days === 0) return 'Expires today';
+  if (days === 1) return 'Expires tomorrow';
+  return `${days}d remaining`;
+}
+
 export default function ExpiryAlerts() {
-  // This will be replaced with real data from Supabase
-  const alerts: Alert[] = [
-    {
-      id: '1',
-      severity: 'critical',
-      title: 'CSCS Card Expired',
-      description: 'John Smith cannot work on site without valid certification',
-      entityName: 'John Smith',
-      entityType: 'person',
-      documentType: 'CSCS Card',
-      expiryDate: '2026-02-01',
-      daysUntilExpiry: -7,
-      actionUrl: '/people/john-smith'
-    },
-    {
-      id: '2',
-      severity: 'critical',
-      title: 'MOT Due in 3 Days',
-      description: 'Vehicle AB12 CDE cannot be driven legally after expiry',
-      entityName: 'AB12 CDE',
-      entityType: 'vehicle',
-      documentType: 'MOT Certificate',
-      expiryDate: '2026-03-11',
-      daysUntilExpiry: 3,
-      actionUrl: '/vehicles/ab12-cde'
-    },
-    {
-      id: '3',
-      severity: 'warning',
-      title: 'Insurance Renewal in 14 Days',
-      description: 'FG34 HIJ insurance expires soon',
-      entityName: 'FG34 HIJ',
-      entityType: 'vehicle',
-      documentType: 'Vehicle Insurance',
-      expiryDate: '2026-03-22',
-      daysUntilExpiry: 14,
-      actionUrl: '/vehicles/fg34-hij'
-    },
-  ];
-
-  const getSeverityIcon = (severity: Alert['severity']) => {
-    switch (severity) {
-      case 'critical':
-        return <XCircle className="w-5 h-5 text-red-600" />;
-      case 'warning':
-        return <AlertTriangle className="w-5 h-5 text-amber-600" />;
-      case 'info':
-        return <Clock className="w-5 h-5 text-blue-600" />;
-    }
-  };
-
-  const getEntityIcon = (type: Alert['entityType']) => {
-    switch (type) {
-      case 'person':
-        return '👤';
-      case 'vehicle':
-        return '🚗';
-      case 'asset':
-        return '🔧';
-    }
-  };
-
-  const formatDaysUntilExpiry = (days: number) => {
-    if (days < 0) {
-      return `Overdue by ${Math.abs(days)} days`;
-    } else if (days === 0) {
-      return 'Expires today';
-    } else if (days === 1) {
-      return 'Expires tomorrow';
-    } else {
-      return `${days} days remaining`;
-    }
-  };
-
-  const criticalAlerts = alerts.filter(a => a.severity === 'critical');
-  const warningAlerts = alerts.filter(a => a.severity === 'warning');
+  const critical = alerts.filter(a => a.severity === 'critical');
+  const warning  = alerts.filter(a => a.severity === 'warning');
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <Sparkles className="w-5 h-5 text-yellow-500" />
-        <h2 className="text-lg font-semibold text-gray-900">AI Compliance Alerts</h2>
-      </div>
+    <div className="space-y-5">
 
-      {/* Summary Stats */}
+      {/* Summary row */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-red-50 border border-red-100 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-1">
-            <XCircle className="w-4 h-4 text-red-600" />
-            <span className="text-sm font-medium text-red-900">Critical</span>
-          </div>
-          <div className="text-2xl font-semibold text-red-600">{criticalAlerts.length}</div>
-          <div className="text-xs text-red-700 mt-1">Requires immediate action</div>
+        <div style={{ backgroundColor: '#000000', borderRadius: '4px', padding: '14px 16px' }}>
+          <div className="label-sm mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>CRITICAL</div>
+          <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#FFFFFF', lineHeight: 1 }}>{critical.length}</div>
+          <div className="mt-1 label-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>IMMEDIATE ACTION</div>
         </div>
-
-        <div className="bg-amber-50 border border-amber-100 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-1">
-            <AlertTriangle className="w-4 h-4 text-amber-600" />
-            <span className="text-sm font-medium text-amber-900">Warning</span>
-          </div>
-          <div className="text-2xl font-semibold text-amber-600">{warningAlerts.length}</div>
-          <div className="text-xs text-amber-700 mt-1">Action needed soon</div>
+        <div style={{ backgroundColor: '#FFF8E1', border: '1px solid #FFC107', borderRadius: '4px', padding: '14px 16px' }}>
+          <div className="label-sm mb-1" style={{ color: '#92400E' }}>WARNING</div>
+          <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1A1C1C', lineHeight: 1 }}>{warning.length}</div>
+          <div className="mt-1 label-sm" style={{ color: '#92400E' }}>ACTION NEEDED SOON</div>
         </div>
       </div>
 
-      {/* Critical Alerts */}
-      {criticalAlerts.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-red-900 flex items-center gap-2">
-            <XCircle className="w-4 h-4" />
-            Critical - Action Required
-          </h3>
-          {criticalAlerts.map((alert) => (
-            <Link
-              key={alert.id}
-              href={alert.actionUrl}
-              className="block bg-red-50 border border-red-200 rounded-lg p-4 hover:bg-red-100 transition-colors"
-            >
-              <div className="flex items-start gap-3">
-                <div className="text-2xl mt-0.5">{getEntityIcon(alert.entityType)}</div>
+      {/* Critical alerts */}
+      {critical.length > 0 && (
+        <div>
+          <div className="label-sm mb-3">CRITICAL — ACTION REQUIRED</div>
+          <div className="space-y-2">
+            {critical.map((a) => (
+              <Link key={a.id} href={a.actionUrl}
+                className="flex items-start gap-4 p-4 transition-colors"
+                style={{
+                  backgroundColor: '#F9F9F9',
+                  border: '1px solid rgba(198,198,198,0.4)',
+                  borderRadius: '4px',
+                  textDecoration: 'none',
+                  display: 'flex',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F3F3F3')}
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#F9F9F9')}>
+                <div className="w-8 h-8 flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: '#000000', borderRadius: '4px' }}>
+                  <DocumentTextIcon className="w-4 h-4" style={{ color: '#FFC107' }} strokeWidth={1.5} />
+                </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-semibold text-red-900 text-sm">{alert.title}</h4>
-                    <span className="text-xs px-2 py-0.5 bg-red-200 text-red-900 rounded font-medium">
-                      {formatDaysUntilExpiry(alert.daysUntilExpiry)}
-                    </span>
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="font-semibold text-sm" style={{ color: '#1A1C1C' }}>{a.title}</span>
+                    <span className="badge badge-expired flex-shrink-0">{daysLabel(a.daysUntilExpiry)}</span>
                   </div>
-                  <p className="text-sm text-red-800 mb-2">{alert.description}</p>
-                  <div className="flex items-center gap-3 text-xs text-red-700">
-                    <span className="font-medium">{alert.entityName}</span>
-                    <span>•</span>
-                    <span>{alert.documentType}</span>
+                  <p className="text-xs mt-1" style={{ color: '#474747' }}>{a.description}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <EntityIcon type={a.entityType} />
+                    <span className="text-xs font-medium" style={{ color: '#474747' }}>{a.entityName}</span>
+                    <span style={{ color: '#C6C6C6', fontSize: '10px' }}>·</span>
+                    <span className="text-xs" style={{ color: '#A3A3A3' }}>{a.documentType}</span>
                   </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+                <ArrowUpRightIcon className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: '#C6C6C6' }} strokeWidth={2} />
+              </Link>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* Warning Alerts */}
-      {warningAlerts.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-amber-900 flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4" />
-            Warnings - Plan Soon
-          </h3>
-          {warningAlerts.map((alert) => (
-            <Link
-              key={alert.id}
-              href={alert.actionUrl}
-              className="block bg-amber-50 border border-amber-200 rounded-lg p-4 hover:bg-amber-100 transition-colors"
-            >
-              <div className="flex items-start gap-3">
-                <div className="text-xl mt-0.5">{getEntityIcon(alert.entityType)}</div>
+      {/* Warning alerts */}
+      {warning.length > 0 && (
+        <div>
+          <div className="label-sm mb-3">WARNINGS — PLAN SOON</div>
+          <div className="space-y-2">
+            {warning.map((a) => (
+              <Link key={a.id} href={a.actionUrl}
+                className="flex items-start gap-4 p-4 transition-colors"
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid rgba(198,198,198,0.4)',
+                  borderRadius: '4px',
+                  textDecoration: 'none',
+                  display: 'flex',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F9F9F9')}
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#FFFFFF')}>
+                <div className="w-8 h-8 flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: '#F3F3F3', borderRadius: '4px' }}>
+                  <DocumentTextIcon className="w-4 h-4" style={{ color: '#474747' }} strokeWidth={1.5} />
+                </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium text-amber-900 text-sm">{alert.title}</h4>
-                    <span className="text-xs px-2 py-0.5 bg-amber-200 text-amber-900 rounded">
-                      {formatDaysUntilExpiry(alert.daysUntilExpiry)}
-                    </span>
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="font-medium text-sm" style={{ color: '#1A1C1C' }}>{a.title}</span>
+                    <span className="badge badge-expiring flex-shrink-0">{daysLabel(a.daysUntilExpiry)}</span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-amber-700">
-                    <span className="font-medium">{alert.entityName}</span>
-                    <span>•</span>
-                    <span>{alert.documentType}</span>
+                  <p className="text-xs mt-1" style={{ color: '#474747' }}>{a.description}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <EntityIcon type={a.entityType} />
+                    <span className="text-xs font-medium" style={{ color: '#474747' }}>{a.entityName}</span>
+                    <span style={{ color: '#C6C6C6', fontSize: '10px' }}>·</span>
+                    <span className="text-xs" style={{ color: '#A3A3A3' }}>{a.documentType}</span>
                   </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+                <ArrowUpRightIcon className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: '#C6C6C6' }} strokeWidth={2} />
+              </Link>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* No Alerts */}
       {alerts.length === 0 && (
-        <div className="text-center py-8 bg-green-50 border border-green-200 rounded-lg">
-          <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-3" />
-          <h3 className="text-base font-semibold text-green-900 mb-1">All Clear!</h3>
-          <p className="text-sm text-green-700">
-            No compliance alerts at this time.
-          </p>
+        <div className="text-center py-10">
+          <DocumentTextIcon className="w-8 h-8 mx-auto mb-3" style={{ color: '#C6C6C6' }} strokeWidth={1} />
+          <div className="label-sm mb-1">ALL CLEAR</div>
+          <p style={{ fontSize: '13px', color: '#A3A3A3' }}>No compliance alerts at this time</p>
         </div>
       )}
     </div>
