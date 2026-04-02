@@ -3,21 +3,44 @@
 import { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import UploadDocumentModal from '@/components/documents/UploadDocumentModal';
-import { MagnifyingGlassIcon, PlusIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 
-const documents = [
-  { id: '1', title: 'CSCS Card',        entityName: 'John Smith',    entityType: 'person',  certificateNumber: 'CSCS123456', issueDate: '2024-01-15', expiryDate: '2029-01-15', status: 'valid',    daysUntilExpiry: 1095 },
-  { id: '2', title: 'MOT Certificate',   entityName: 'AB12 CDE',      entityType: 'vehicle', certificateNumber: 'MOT987654',  issueDate: '2025-02-10', expiryDate: '2026-03-15', status: 'expiring', daysUntilExpiry: 7 },
-  { id: '3', title: 'IPAF Certificate',  entityName: 'Sarah Johnson', entityType: 'person',  certificateNumber: 'IPAF456789', issueDate: '2023-06-20', expiryDate: '2026-02-01', status: 'expired',  daysUntilExpiry: -37 },
+const ALL_DOCUMENTS = [
+  { id: '1',  title: 'CSCS Card',           entityName: 'John Smith',     entityType: 'person',  certificateNumber: 'CSCS123456',   issueDate: '2024-01-15', expiryDate: '2029-01-15', status: 'valid',    daysUntilExpiry: 1095 },
+  { id: '2',  title: 'MOT Certificate',      entityName: 'AB12 CDE',       entityType: 'vehicle', certificateNumber: 'MOT987654',    issueDate: '2025-02-10', expiryDate: '2026-03-15', status: 'expiring', daysUntilExpiry: 7 },
+  { id: '3',  title: 'IPAF Certificate',     entityName: 'Sarah Johnson',  entityType: 'person',  certificateNumber: 'IPAF456789',   issueDate: '2023-06-20', expiryDate: '2026-02-01', status: 'expired',  daysUntilExpiry: -37 },
+  { id: '4',  title: 'LOLER Inspection',     entityName: 'SCAF-001',       entityType: 'asset',   certificateNumber: 'LOLER2024-042',issueDate: '2024-11-15', expiryDate: '2026-04-20', status: 'expiring', daysUntilExpiry: 12 },
+  { id: '5',  title: 'Vehicle Insurance',    entityName: 'FG34 HIJ',       entityType: 'vehicle', certificateNumber: 'INS123789',    issueDate: '2025-01-01', expiryDate: '2026-01-01', status: 'valid',    daysUntilExpiry: 298 },
+  { id: '6',  title: 'First Aid Certificate',entityName: 'Mike Davies',    entityType: 'person',  certificateNumber: 'FA-2024-0821', issueDate: '2024-04-01', expiryDate: '2027-04-01', status: 'valid',    daysUntilExpiry: 365 },
+  { id: '7',  title: 'PAT Test',             entityName: 'TOOL-042',       entityType: 'asset',   certificateNumber: 'PAT-042-2025', issueDate: '2025-01-10', expiryDate: '2026-01-10', status: 'valid',    daysUntilExpiry: 285 },
+  { id: '8',  title: 'Road Tax',             entityName: 'KL56 MNO',       entityType: 'vehicle', certificateNumber: 'TAX-KL56-2025',issueDate: '2025-03-01', expiryDate: '2026-03-01', status: 'expiring', daysUntilExpiry: 14 },
+  { id: '9',  title: 'CSCS Card',            entityName: 'Emma Wilson',    entityType: 'person',  certificateNumber: 'CSCS789012',   issueDate: '2023-09-01', expiryDate: '2028-09-01', status: 'valid',    daysUntilExpiry: 880 },
+  { id: '10', title: 'Safety Certificate',   entityName: 'LIFT-008',       entityType: 'asset',   certificateNumber: 'CERT-LIFT-008',issueDate: '2024-03-15', expiryDate: '2027-03-15', status: 'valid',    daysUntilExpiry: 372 },
+  { id: '11', title: 'MOT Certificate',      entityName: 'PQ78 RST',       entityType: 'vehicle', certificateNumber: 'MOT456321',    issueDate: '2025-01-20', expiryDate: '2026-01-20', status: 'valid',    daysUntilExpiry: 295 },
+  { id: '12', title: 'PASMA Certificate',    entityName: 'James Brown',    entityType: 'person',  certificateNumber: 'PASMA-2024-091',issueDate: '2024-07-01', expiryDate: '2026-04-02', status: 'expiring', daysUntilExpiry: 0 },
+  { id: '13', title: 'LOLER Inspection',     entityName: 'LIFT-012',       entityType: 'asset',   certificateNumber: 'LOLER-LIFT-012',issueDate: '2025-01-01', expiryDate: '2026-07-01', status: 'valid',    daysUntilExpiry: 183 },
+  { id: '14', title: 'Working at Height',    entityName: 'Tom Harris',     entityType: 'person',  certificateNumber: 'WAH-2023-441', issueDate: '2023-11-15', expiryDate: '2025-11-15', status: 'expired',  daysUntilExpiry: -45 },
+  { id: '15', title: 'Vehicle Insurance',    entityName: 'UV90 WXY',       entityType: 'vehicle', certificateNumber: 'INS-UV90-2025',issueDate: '2025-06-01', expiryDate: '2026-06-01', status: 'valid',    daysUntilExpiry: 150 },
+  { id: '16', title: 'PAT Test',             entityName: 'COMP-023',       entityType: 'asset',   certificateNumber: 'PAT-023-2025', issueDate: '2025-02-01', expiryDate: '2026-02-01', status: 'valid',    daysUntilExpiry: 305 },
+  { id: '17', title: 'CSCS Card',            entityName: 'Dan Booth',      entityType: 'person',  certificateNumber: 'CSCS345678',   issueDate: '2022-05-01', expiryDate: '2025-05-01', status: 'expired',  daysUntilExpiry: -330 },
+  { id: '18', title: 'Service Record',       entityName: 'AB12 CDE',       entityType: 'vehicle', certificateNumber: 'SVC-2026-001', issueDate: '2026-01-15', expiryDate: '2026-07-15', status: 'valid',    daysUntilExpiry: 105 },
+  { id: '19', title: 'IPAF Certificate',     entityName: 'Amy Clarke',     entityType: 'person',  certificateNumber: 'IPAF-AC-2024', issueDate: '2024-03-01', expiryDate: '2027-03-01', status: 'valid',    daysUntilExpiry: 335 },
+  { id: '20', title: 'LOLER Inspection',     entityName: 'SCAF-002',       entityType: 'asset',   certificateNumber: 'LOLER-S2-2024',issueDate: '2024-06-01', expiryDate: '2026-06-01', status: 'valid',    daysUntilExpiry: 155 },
+  { id: '21', title: 'Scaffold Licence',     entityName: 'Neil Harvey',    entityType: 'person',  certificateNumber: 'SCAF-NH-2023', issueDate: '2023-08-01', expiryDate: '2026-08-01', status: 'valid',    daysUntilExpiry: 213 },
+  { id: '22', title: 'MOT Certificate',      entityName: 'DE22 FGH',       entityType: 'vehicle', certificateNumber: 'MOT-DE22-2025',issueDate: '2025-04-01', expiryDate: '2026-04-22', status: 'expiring', daysUntilExpiry: 20 },
+  { id: '23', title: 'PAT Test',             entityName: 'TOOL-018',       entityType: 'asset',   certificateNumber: 'PAT-018-2025', issueDate: '2025-03-01', expiryDate: '2026-03-01', status: 'expiring', daysUntilExpiry: 3 },
+  { id: '24', title: 'Manual Handling',      entityName: 'Emma Wilson',    entityType: 'person',  certificateNumber: 'MH-EW-2024',   issueDate: '2024-02-01', expiryDate: '2027-02-01', status: 'valid',    daysUntilExpiry: 400 },
+  { id: '25', title: 'Vehicle Insurance',    entityName: 'IJ33 KLM',       entityType: 'vehicle', certificateNumber: 'INS-IJ33-2025',issueDate: '2025-05-01', expiryDate: '2026-05-01', status: 'valid',    daysUntilExpiry: 120 },
 ];
 
+const PER_PAGE = 10;
 const breakdown = [
-  { name: 'CSCS Cards', count: 142 },
-  { name: 'IPAF',       count: 58 },
-  { name: 'MOT',        count: 48 },
-  { name: 'Insurance',  count: 95 },
-  { name: 'LOLER',      count: 87 },
-  { name: 'Other',      count: 57 },
+  { name: 'CSCS CARDS', count: 142 },
+  { name: 'IPAF',        count: 58 },
+  { name: 'MOT',         count: 48 },
+  { name: 'INSURANCE',   count: 95 },
+  { name: 'LOLER',       count: 87 },
+  { name: 'OTHER',       count: 57 },
 ];
 
 function StatusBadge({ status, days }: { status: string; days: number }) {
@@ -28,6 +51,11 @@ function StatusBadge({ status, days }: { status: string; days: number }) {
 
 export default function DocumentsPage() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const total = ALL_DOCUMENTS.length;
+  const totalPages = Math.ceil(total / PER_PAGE);
+  const start = (page - 1) * PER_PAGE;
+  const visible = ALL_DOCUMENTS.slice(start, start + PER_PAGE);
 
   return (
     <AppLayout>
@@ -38,24 +66,32 @@ export default function DocumentsPage() {
       />
 
       <div className="space-y-8">
+
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: 'VALID',         value: '312' },
-            { label: 'EXPIRING SOON', value: '98' },
-            { label: 'EXPIRED',       value: '52', urgent: true },
-            { label: 'PENDING REVIEW',value: '25' },
+            { label: 'VALID',          value: String(ALL_DOCUMENTS.filter(d => d.status === 'valid').length) },
+            { label: 'EXPIRING SOON',  value: String(ALL_DOCUMENTS.filter(d => d.status === 'expiring').length) },
+            { label: 'EXPIRED',        value: String(ALL_DOCUMENTS.filter(d => d.status === 'expired').length), urgent: true },
+            { label: 'TOTAL DOCS',     value: String(total) },
           ].map((s) => (
             <div key={s.label} className="card"
-              style={s.urgent ? { backgroundColor: '#000', border: 'none' } : {}}>
-              <div className="stat-label" style={s.urgent ? { color: 'rgba(255,255,255,0.5)' } : {}}>{s.label}</div>
-              <div className="stat-value mt-2" style={s.urgent ? { color: '#fff' } : {}}>{s.value}</div>
+              style={(s as any).urgent ? { backgroundColor: '#000', border: 'none' } : {}}>
+              <div className="stat-label" style={(s as any).urgent ? { color: 'rgba(255,255,255,0.5)' } : {}}>{s.label}</div>
+              <div className="stat-value mt-2" style={(s as any).urgent ? { color: '#fff' } : {}}>{s.value}</div>
             </div>
           ))}
         </div>
 
         {/* Document table */}
         <div className="card-flush">
+          <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F3F3F3' }}>
+            <span className="label-sm">ALL DOCUMENTS</span>
+            <button className="btn btn-secondary flex items-center gap-2" style={{ fontSize: '12px', padding: '6px 12px' }}>
+              <ArrowDownTrayIcon className="w-3.5 h-3.5" strokeWidth={1.5} />
+              Export
+            </button>
+          </div>
           <table>
             <thead>
               <tr>
@@ -68,7 +104,7 @@ export default function DocumentsPage() {
               </tr>
             </thead>
             <tbody>
-              {documents.map((doc) => (
+              {visible.map((doc) => (
                 <tr key={doc.id}>
                   <td>
                     <span className="font-medium" style={{ color: '#1A1C1C' }}>{doc.title}</span>
@@ -92,10 +128,19 @@ export default function DocumentsPage() {
             </tbody>
           </table>
           <div className="flex items-center justify-between px-6 py-4" style={{ borderTop: '1px solid #F3F3F3' }}>
-            <span className="label-sm">SHOWING 1–3 OF 487</span>
-            <div className="flex gap-2">
-              <button className="btn btn-secondary text-xs">Previous</button>
-              <button className="btn btn-black text-xs">Next</button>
+            <span className="label-sm">SHOWING {start + 1}–{Math.min(start + PER_PAGE, total)} OF {total}</span>
+            <div className="flex items-center gap-2">
+              <button className="btn btn-secondary text-xs" disabled={page === 1}
+                style={{ opacity: page === 1 ? 0.4 : 1 }}
+                onClick={() => setPage(p => Math.max(1, p - 1))}>
+                Previous
+              </button>
+              <span className="label-sm px-2">{page} / {totalPages}</span>
+              <button className="btn btn-black text-xs" disabled={page === totalPages}
+                style={{ opacity: page === totalPages ? 0.4 : 1 }}
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}>
+                Next
+              </button>
             </div>
           </div>
         </div>

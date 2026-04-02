@@ -1,23 +1,50 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
 import AppLayout from '@/components/layout/AppLayout';
 import {
-  PlusIcon,
-  MagnifyingGlassIcon,
   WrenchScrewdriverIcon,
   ArrowsPointingOutIcon,
   BoltIcon,
-  CubeIcon,
   Square3Stack3DIcon,
   ArchiveBoxIcon,
 } from '@heroicons/react/24/outline';
 
-const assets = [
-  { id: '1', assetId: 'SCAF-001', name: 'Aluminium Tower Scaffold', type: 'Scaffold',        location: 'Site A', documents: 3, expiring: 1, expired: 0, status: 'expiring' },
-  { id: '2', assetId: 'COMP-023', name: 'Air Compressor 50L',        type: 'Compressor',      location: 'Depot',  documents: 2, expiring: 0, expired: 0, status: 'valid' },
-  { id: '3', assetId: 'LADD-015', name: 'Extension Ladder 6m',       type: 'Ladder',          location: 'Site B', documents: 2, expiring: 0, expired: 1, status: 'expired' },
-  { id: '4', assetId: 'LIFT-008', name: 'Scissor Lift 8m',           type: 'Access Equipment',location: 'Site C', documents: 4, expiring: 0, expired: 0, status: 'valid' },
-  { id: '5', assetId: 'TOOL-042', name: 'Portable Angle Grinder',    type: 'Power Tool',      location: 'Site A', documents: 1, expiring: 1, expired: 0, status: 'expiring' },
+const ALL_ASSETS = [
+  { id: '1',  assetId: 'SCAF-001', name: 'Aluminium Tower Scaffold',   type: 'Scaffold',        location: 'Site A', documents: 3, expiring: 1, expired: 0, status: 'expiring' },
+  { id: '2',  assetId: 'COMP-023', name: 'Air Compressor 50L',          type: 'Compressor',      location: 'Depot',  documents: 2, expiring: 0, expired: 0, status: 'valid' },
+  { id: '3',  assetId: 'LADD-015', name: 'Extension Ladder 6m',         type: 'Ladder',          location: 'Site B', documents: 2, expiring: 0, expired: 1, status: 'expired' },
+  { id: '4',  assetId: 'LIFT-008', name: 'Scissor Lift 8m',             type: 'Access Equipment',location: 'Site C', documents: 4, expiring: 0, expired: 0, status: 'valid' },
+  { id: '5',  assetId: 'TOOL-042', name: 'Portable Angle Grinder',      type: 'Power Tool',      location: 'Site A', documents: 1, expiring: 1, expired: 0, status: 'expiring' },
+  { id: '6',  assetId: 'SCAF-002', name: 'Kwikstage Scaffold System',   type: 'Scaffold',        location: 'Site B', documents: 3, expiring: 0, expired: 0, status: 'valid' },
+  { id: '7',  assetId: 'LIFT-012', name: 'Cherry Picker 12m',           type: 'Access Equipment',location: 'Site A', documents: 4, expiring: 1, expired: 0, status: 'expiring' },
+  { id: '8',  assetId: 'TOOL-018', name: 'SDS Rotary Hammer Drill',     type: 'Power Tool',      location: 'Site C', documents: 1, expiring: 0, expired: 0, status: 'valid' },
+  { id: '9',  assetId: 'GENE-005', name: 'Diesel Generator 10kVA',      type: 'Generator',       location: 'Depot',  documents: 3, expiring: 0, expired: 1, status: 'expired' },
+  { id: '10', assetId: 'LADD-022', name: 'Step Ladder 3m',              type: 'Ladder',          location: 'Site B', documents: 2, expiring: 0, expired: 0, status: 'valid' },
+  { id: '11', assetId: 'COMP-011', name: 'Breaker & Compressor Kit',    type: 'Compressor',      location: 'Site A', documents: 2, expiring: 1, expired: 0, status: 'expiring' },
+  { id: '12', assetId: 'LIFT-019', name: 'Telehandler 10m',             type: 'Access Equipment',location: 'Site C', documents: 5, expiring: 0, expired: 0, status: 'valid' },
+  { id: '13', assetId: 'TOOL-061', name: 'Concrete Mixer 120L',         type: 'Power Tool',      location: 'Depot',  documents: 2, expiring: 0, expired: 0, status: 'valid' },
+  { id: '14', assetId: 'SCAF-007', name: 'Mobile Scaffold Tower',       type: 'Scaffold',        location: 'Site B', documents: 3, expiring: 0, expired: 1, status: 'expired' },
+  { id: '15', assetId: 'GENE-009', name: 'Petrol Generator 5kVA',       type: 'Generator',       location: 'Site A', documents: 2, expiring: 1, expired: 0, status: 'expiring' },
+  { id: '16', assetId: 'LADD-031', name: 'Platform Ladder 2m',          type: 'Ladder',          location: 'Site C', documents: 1, expiring: 0, expired: 0, status: 'valid' },
+  { id: '17', assetId: 'LIFT-003', name: 'Boom Lift 15m',               type: 'Access Equipment',location: 'Site A', documents: 4, expiring: 0, expired: 0, status: 'valid' },
+  { id: '18', assetId: 'TOOL-075', name: 'Pressure Washer 240 bar',     type: 'Power Tool',      location: 'Site B', documents: 1, expiring: 2, expired: 0, status: 'expiring' },
+  { id: '19', assetId: 'COMP-034', name: 'Air Compressor 100L',         type: 'Compressor',      location: 'Depot',  documents: 3, expiring: 0, expired: 0, status: 'valid' },
+  { id: '20', assetId: 'SCAF-014', name: 'Tube & Fitting Scaffold',     type: 'Scaffold',        location: 'Site C', documents: 4, expiring: 0, expired: 1, status: 'expired' },
+  { id: '21', assetId: 'LIFT-027', name: 'Scissor Lift 12m',            type: 'Access Equipment',location: 'Site B', documents: 4, expiring: 1, expired: 0, status: 'expiring' },
+  { id: '22', assetId: 'TOOL-088', name: 'Cut-Off Saw Petrol',          type: 'Power Tool',      location: 'Site A', documents: 2, expiring: 0, expired: 0, status: 'valid' },
+  { id: '23', assetId: 'GENE-016', name: 'Diesel Generator 20kVA',      type: 'Generator',       location: 'Depot',  documents: 3, expiring: 0, expired: 0, status: 'valid' },
+  { id: '24', assetId: 'LADD-044', name: 'Combination Ladder 3.8m',     type: 'Ladder',          location: 'Site C', documents: 1, expiring: 1, expired: 0, status: 'expiring' },
+  { id: '25', assetId: 'LIFT-031', name: 'Mast Climber 50m',            type: 'Access Equipment',location: 'Site A', documents: 5, expiring: 0, expired: 0, status: 'valid' },
+  { id: '26', assetId: 'TOOL-099', name: 'Nail Gun (Framing)',          type: 'Power Tool',      location: 'Site B', documents: 1, expiring: 0, expired: 1, status: 'expired' },
+  { id: '27', assetId: 'COMP-047', name: 'Portable Compressor 25L',     type: 'Compressor',      location: 'Site C', documents: 2, expiring: 0, expired: 0, status: 'valid' },
+  { id: '28', assetId: 'SCAF-021', name: 'System Scaffold (Cuplok)',    type: 'Scaffold',        location: 'Site A', documents: 4, expiring: 2, expired: 0, status: 'expiring' },
+  { id: '29', assetId: 'GENE-023', name: 'Solar Generator 3kW',         type: 'Generator',       location: 'Site B', documents: 2, expiring: 0, expired: 0, status: 'valid' },
+  { id: '30', assetId: 'LIFT-039', name: 'Knuckle Boom Lift 20m',       type: 'Access Equipment',location: 'Depot',  documents: 5, expiring: 0, expired: 1, status: 'expired' },
 ];
+
+const PER_PAGE = 10;
 
 const breakdown = [
   { label: 'ACCESS',      value: 24, Icon: ArrowsPointingOutIcon },
@@ -35,6 +62,12 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function AssetsPage() {
+  const [page, setPage] = useState(1);
+  const total = ALL_ASSETS.length;
+  const totalPages = Math.ceil(total / PER_PAGE);
+  const start = (page - 1) * PER_PAGE;
+  const visible = ALL_ASSETS.slice(start, start + PER_PAGE);
+
   return (
     <AppLayout>
       <div className="space-y-8">
@@ -42,15 +75,15 @@ export default function AssetsPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: 'TOTAL ASSETS',  value: '87' },
-            { label: 'COMPLIANT',     value: '58' },
-            { label: 'EXPIRING SOON', value: '18' },
-            { label: 'NON-COMPLIANT', value: '11', urgent: true },
+            { label: 'TOTAL ASSETS',  value: String(total) },
+            { label: 'COMPLIANT',     value: String(ALL_ASSETS.filter(a => a.status === 'valid').length) },
+            { label: 'EXPIRING SOON', value: String(ALL_ASSETS.filter(a => a.status === 'expiring').length) },
+            { label: 'NON-COMPLIANT', value: String(ALL_ASSETS.filter(a => a.status === 'expired').length), urgent: true },
           ].map((s) => (
             <div key={s.label} className="card"
-              style={s.urgent ? { backgroundColor: '#000', border: 'none' } : {}}>
-              <div className="stat-label" style={s.urgent ? { color: 'rgba(255,255,255,0.5)' } : {}}>{s.label}</div>
-              <div className="stat-value mt-2" style={s.urgent ? { color: '#fff' } : {}}>{s.value}</div>
+              style={(s as any).urgent ? { backgroundColor: '#000', border: 'none' } : {}}>
+              <div className="stat-label" style={(s as any).urgent ? { color: 'rgba(255,255,255,0.5)' } : {}}>{s.label}</div>
+              <div className="stat-value mt-2" style={(s as any).urgent ? { color: '#fff' } : {}}>{s.value}</div>
             </div>
           ))}
         </div>
@@ -70,7 +103,7 @@ export default function AssetsPage() {
               </tr>
             </thead>
             <tbody>
-              {assets.map((a) => (
+              {visible.map((a) => (
                 <tr key={a.id}>
                   <td>
                     <div className="flex items-center gap-3">
@@ -100,10 +133,19 @@ export default function AssetsPage() {
             </tbody>
           </table>
           <div className="flex items-center justify-between px-6 py-4" style={{ borderTop: '1px solid #F3F3F3' }}>
-            <span className="label-sm">SHOWING 1–5 OF 87</span>
-            <div className="flex gap-2">
-              <button className="btn btn-secondary text-xs">Previous</button>
-              <button className="btn btn-black text-xs">Next</button>
+            <span className="label-sm">SHOWING {start + 1}–{Math.min(start + PER_PAGE, total)} OF {total}</span>
+            <div className="flex items-center gap-2">
+              <button className="btn btn-secondary text-xs" disabled={page === 1}
+                style={{ opacity: page === 1 ? 0.4 : 1 }}
+                onClick={() => setPage(p => Math.max(1, p - 1))}>
+                Previous
+              </button>
+              <span className="label-sm px-2">{page} / {totalPages}</span>
+              <button className="btn btn-black text-xs" disabled={page === totalPages}
+                style={{ opacity: page === totalPages ? 0.4 : 1 }}
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}>
+                Next
+              </button>
             </div>
           </div>
         </div>
