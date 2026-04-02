@@ -132,8 +132,10 @@ export default function AssetsPage() {
                   </td>
                   <td><StatusBadge status={a.status} /></td>
                   <td style={{ textAlign: 'right' }}>
-                    <Link href={`/assets/${a.id}`}>
-                      <button className="btn btn-ghost text-xs">View →</button>
+                    <Link href={`/assets/${a.id}`}
+                      className="btn btn-ghost text-xs"
+                      style={{ display: 'inline-flex', textDecoration: 'none' }}>
+                      View →
                     </Link>
                   </td>
                 </tr>

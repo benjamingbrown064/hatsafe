@@ -139,8 +139,10 @@ export default function PeoplePage() {
                   </td>
                   <td><StatusBadge status={p.status} /></td>
                   <td style={{ textAlign: 'right' }}>
-                    <Link href={`/people/${p.id}`}>
-                      <button className="btn btn-ghost text-xs">View →</button>
+                    <Link href={`/people/${p.id}`}
+                      className="btn btn-ghost text-xs"
+                      style={{ display: 'inline-flex', textDecoration: 'none' }}>
+                      View →
                     </Link>
                   </td>
                 </tr>

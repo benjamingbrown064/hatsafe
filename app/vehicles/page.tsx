@@ -141,8 +141,10 @@ export default function VehiclesPage() {
                   </td>
                   <td><StatusBadge status={v.status} /></td>
                   <td style={{ textAlign: 'right' }}>
-                    <Link href={`/vehicles/${v.id}`}>
-                      <button className="btn btn-ghost text-xs">View →</button>
+                    <Link href={`/vehicles/${v.id}`}
+                      className="btn btn-ghost text-xs"
+                      style={{ display: 'inline-flex', textDecoration: 'none' }}>
+                      View →
                     </Link>
                   </td>
                 </tr>

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import UploadDocumentModal from '@/components/documents/UploadDocumentModal';
+import Link from 'next/link';
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 
 const ALL_DOCUMENTS = [
@@ -131,7 +132,11 @@ export default function DocumentsPage() {
                   <td><StatusBadge status={doc.status} days={doc.daysUntilExpiry} /></td>
                   <td style={{ textAlign: 'right' }}>
                     <div className="flex items-center justify-end gap-3">
-                      <button className="btn btn-ghost text-xs">View</button>
+                      <Link href={`/documents/${doc.id}`}
+                        className="btn btn-ghost text-xs"
+                        style={{ display: 'inline-flex', textDecoration: 'none' }}>
+                        View
+                      </Link>
                       <button className="btn btn-ghost text-xs">Download</button>
                     </div>
                   </td>
