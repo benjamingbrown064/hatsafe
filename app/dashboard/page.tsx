@@ -175,26 +175,31 @@ export default function DashboardPage() {
           <div className="p-6">
             <div className="grid grid-cols-10 gap-2">
               {[...Array(30)].map((_, i) => {
+                const day = i + 1;
                 const hasExpiry = [3, 7, 12, 18, 24].includes(i);
                 const isCritical = [7].includes(i);
                 return (
-                  <div key={i}
-                    className="aspect-square flex flex-col items-center justify-center cursor-pointer transition-colors"
+                  <a key={i} href={`/calendar?day=${day}`}
+                    className="aspect-square flex flex-col items-center justify-center transition-all"
                     style={{
                       borderRadius: '4px',
                       backgroundColor: isCritical ? '#000000' : hasExpiry ? '#FFF8E1' : '#F9F9F9',
                       border: hasExpiry && !isCritical ? '1px solid #FFC107' : '1px solid #F3F3F3',
-                    }}>
+                      cursor: 'pointer',
+                      textDecoration: 'none',
+                    }}
+                    onMouseEnter={e => { if (!isCritical) e.currentTarget.style.opacity = '0.75'; }}
+                    onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}>
                     <span className="text-xs font-medium"
                       style={{ color: isCritical ? '#FFFFFF' : '#1A1C1C' }}>
-                      {i + 1}
+                      {day}
                     </span>
                     {hasExpiry && (
                       <span className="text-[9px] font-semibold" style={{ color: isCritical ? 'rgba(255,255,255,0.7)' : '#92400E' }}>
                         {isCritical ? '!' : '↑'}
                       </span>
                     )}
-                  </div>
+                  </a>
                 );
               })}
             </div>
