@@ -1,14 +1,20 @@
-import AppLayout from '@/components/layout/AppLayout'
+import AppLayout from '@/components/layout/AppLayout';
+import Link from 'next/link';
 import {
   PencilIcon,
   DocumentTextIcon,
   PlusIcon,
   ArrowLeftIcon,
-} from '@heroicons/react/24/outline'
-import Link from 'next/link'
+  WrenchScrewdriverIcon,
+  MapPinIcon,
+  QrCodeIcon,
+  PrinterIcon,
+  ArrowDownTrayIcon,
+  ArrowUpTrayIcon,
+  CheckCircleIcon,
+} from '@heroicons/react/24/outline';
 
 export default function AssetProfilePage({ params }: { params: { id: string } }) {
-  // Placeholder data (will be replaced with real data from Supabase)
   const asset = {
     id: params.id,
     assetId: 'SCAF-001',
@@ -18,269 +24,200 @@ export default function AssetProfilePage({ params }: { params: { id: string } })
     model: 'Zone 1',
     serialNumber: 'SN-2024-8721',
     purchaseDate: '2024-03-15',
-    location: 'Site A - Manchester',
+    location: 'Site A – Manchester',
     site: 'Site A',
     owner: 'Mike Davies',
     condition: 'Good',
-  }
+  };
 
   const documents = [
-    {
-      id: '1',
-      title: 'LOLER Inspection',
-      issuer: 'Safety Inspections Ltd',
-      certificateNumber: 'LOLER2024-042',
-      issueDate: '2024-11-15',
-      expiryDate: '2026-03-20',
-      status: 'expiring',
-      daysUntilExpiry: 12,
-    },
-    {
-      id: '2',
-      title: 'Safety Certificate',
-      issuer: 'Boss Equipment',
-      certificateNumber: 'CERT-SCAF-001-2024',
-      issueDate: '2024-03-15',
-      expiryDate: '2027-03-15',
-      status: 'valid',
-      daysUntilExpiry: 372,
-    },
-    {
-      id: '3',
-      title: 'User Manual',
-      issuer: 'Boss Equipment',
-      certificateNumber: 'MAN-ZONE1-2024',
-      issueDate: '2024-03-15',
-      expiryDate: null,
-      status: 'valid',
-      daysUntilExpiry: null,
-    },
-  ]
+    { id: '1', title: 'LOLER Inspection',   issuer: 'Safety Inspections Ltd', certificateNumber: 'LOLER2024-042',     issueDate: '2024-11-15', expiryDate: '2026-03-20', status: 'expiring', daysUntilExpiry: 12 },
+    { id: '2', title: 'Safety Certificate', issuer: 'Boss Equipment',          certificateNumber: 'CERT-SCAF-001-2024', issueDate: '2024-03-15', expiryDate: '2027-03-15', status: 'valid',    daysUntilExpiry: 372 },
+    { id: '3', title: 'User Manual',         issuer: 'Boss Equipment',          certificateNumber: 'MAN-ZONE1-2024',    issueDate: '2024-03-15', expiryDate: null,          status: 'valid',    daysUntilExpiry: null },
+  ];
 
-  const getStatusBadge = (status: string, daysUntil: number | null) => {
-    if (daysUntil === null) {
-      return <span className="badge-valid">No Expiry</span>
-    }
-    switch (status) {
-      case 'valid':
-        return <span className="badge-valid">Valid ({daysUntil} days)</span>
-      case 'expiring':
-        return <span className="badge-expiring">Expiring ({daysUntil} days)</span>
-      case 'expired':
-        return <span className="badge-expired">Overdue ({Math.abs(daysUntil)} days)</span>
-      default:
-        return <span className="badge-missing">Unknown</span>
-    }
+  const maintenance = [
+    { date: '2024-11-15', type: 'LOLER Inspection', performed: 'Safety Inspections Ltd', result: 'Passed',    notes: 'All components checked and verified' },
+    { date: '2024-08-10', type: 'Routine Service',   performed: 'Site A Team',            result: 'Completed', notes: 'Cleaned and lubricated all moving parts' },
+    { date: '2024-05-15', type: 'Safety Check',      performed: 'Mike Davies',            result: 'Passed',    notes: 'Visual inspection – no issues found' },
+  ];
+
+  const hasExpired  = documents.some(d => d.status === 'expired');
+  const hasExpiring = documents.some(d => d.status === 'expiring');
+  const complianceStatus = hasExpired ? 'expired' : hasExpiring ? 'expiring' : 'valid';
+
+  function DocBadge({ status, days }: { status: string; days: number | null }) {
+    if (days === null)      return <span className="badge badge-valid">No Expiry</span>;
+    if (status === 'valid')    return <span className="badge badge-valid">Valid · {days}d</span>;
+    if (status === 'expiring') return <span className="badge badge-expiring">Expiring · {days}d</span>;
+    return <span className="badge badge-expired">Overdue {Math.abs(days!)}d</span>;
   }
-
-  // Calculate compliance status
-  const hasExpired = documents.some(d => d.status === 'expired')
-  const hasExpiring = documents.some(d => d.status === 'expiring')
-  const complianceStatus = hasExpired ? 'expired' : hasExpiring ? 'expiring' : 'valid'
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        {/* Back button */}
-        <Link href="/assets" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900">
-          <ArrowLeftIcon className="h-4 w-4 mr-2" />
+      <div className="space-y-8">
+
+        {/* Back */}
+        <Link href="/assets" className="inline-flex items-center gap-2 text-sm" style={{ color: '#474747' }}>
+          <ArrowLeftIcon className="w-4 h-4" strokeWidth={1.5} />
           Back to Assets
         </Link>
 
-        {/* Profile header */}
+        {/* Header card */}
         <div className="card">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-start space-x-4">
-              {/* Asset icon */}
-              <div className="flex-shrink-0">
-                <div className="h-20 w-20 rounded-lg bg-primary-50 flex items-center justify-center text-3xl">
-                  🔧
-                </div>
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-6">
+            <div className="flex items-start gap-5">
+              <div className="w-14 h-14 flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: '#F3F3F3', borderRadius: '6px' }}>
+                <WrenchScrewdriverIcon className="w-7 h-7" style={{ color: '#474747' }} strokeWidth={1.5} />
               </div>
-
-              {/* Basic info */}
               <div>
-                <div className="flex items-center space-x-3">
-                  <h1 className="text-3xl font-semibold text-gray-900">{asset.assetId}</h1>
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                    {asset.condition}
-                  </span>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1A1C1C' }}>{asset.assetId}</h1>
+                  <span className="badge badge-outline">{asset.condition}</span>
+                  {complianceStatus === 'valid'    && <span className="badge badge-valid">Compliant</span>}
+                  {complianceStatus === 'expiring' && <span className="badge badge-expiring">Expiring Soon</span>}
+                  {complianceStatus === 'expired'  && <span className="badge badge-expired">Non-Compliant</span>}
                 </div>
-                <p className="text-lg text-gray-600 mt-1">{asset.name}</p>
-                <div className="flex items-center space-x-4 mt-2">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                    {asset.type}
-                  </span>
-                  {complianceStatus === 'valid' && (
-                    <span className="badge-valid">Compliant</span>
-                  )}
-                  {complianceStatus === 'expiring' && (
-                    <span className="badge-expiring">Expiring Soon</span>
-                  )}
-                  {complianceStatus === 'expired' && (
-                    <span className="badge-expired">Non-Compliant</span>
-                  )}
+                <p className="mt-1" style={{ color: '#474747', fontSize: '15px' }}>{asset.name}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <MapPinIcon className="w-3.5 h-3.5" style={{ color: '#A3A3A3' }} strokeWidth={1.5} />
+                  <span className="text-xs" style={{ color: '#A3A3A3' }}>{asset.location}</span>
                 </div>
               </div>
             </div>
-
-            {/* Actions */}
-            <div className="flex space-x-3">
-              <button className="btn-secondary flex items-center space-x-2">
-                <PencilIcon className="h-5 w-5" />
-                <span>Edit</span>
+            <div className="flex gap-2 flex-shrink-0">
+              <button className="btn btn-secondary flex items-center gap-2">
+                <PencilIcon className="w-4 h-4" strokeWidth={1.5} />
+                Edit
               </button>
-              <button className="btn-primary flex items-center space-x-2">
-                <PlusIcon className="h-5 w-5" />
-                <span>Add Document</span>
+              <button className="btn btn-primary flex items-center gap-2">
+                <PlusIcon className="w-4 h-4" strokeWidth={2} />
+                Add Document
               </button>
             </div>
           </div>
         </div>
 
-        {/* Details grid */}
+        {/* Main content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left column - Details */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Asset details */}
+
+          {/* Left sidebar */}
+          <div className="space-y-4">
+
+            {/* Details */}
             <div className="card">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Asset Details</h2>
+              <div className="label-sm mb-4">ASSET DETAILS</div>
               <dl className="space-y-3">
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Asset ID</dt>
-                  <dd className="mt-1 text-sm text-gray-900 font-mono">{asset.assetId}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Name</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{asset.name}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Type</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{asset.type}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Manufacturer</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{asset.manufacturer}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Model</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{asset.model}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Serial Number</dt>
-                  <dd className="mt-1 text-sm text-gray-900 font-mono">{asset.serialNumber}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Purchase Date</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{asset.purchaseDate}</dd>
-                </div>
+                {[
+                  { label: 'Asset ID',      value: asset.assetId,       mono: true },
+                  { label: 'Type',          value: asset.type },
+                  { label: 'Manufacturer',  value: asset.manufacturer },
+                  { label: 'Model',         value: asset.model },
+                  { label: 'Serial No.',    value: asset.serialNumber,  mono: true },
+                  { label: 'Purchase Date', value: asset.purchaseDate },
+                ].map((row) => (
+                  <div key={row.label} className="flex items-start justify-between gap-4">
+                    <dt style={{ fontSize: '12px', color: '#A3A3A3', flexShrink: 0 }}>{row.label}</dt>
+                    <dd style={{ fontSize: '13px', color: '#1A1C1C', fontWeight: 500, textAlign: 'right', fontFamily: row.mono ? 'monospace' : 'inherit' }}>
+                      {row.value}
+                    </dd>
+                  </div>
+                ))}
               </dl>
             </div>
 
-            {/* Location & Assignment */}
+            {/* Location */}
             <div className="card">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Location & Assignment</h2>
+              <div className="label-sm mb-4">LOCATION & ASSIGNMENT</div>
               <dl className="space-y-3">
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Current Location</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{asset.location}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Site</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{asset.site}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Owner</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{asset.owner}</dd>
-                </div>
+                {[
+                  { label: 'Location', value: asset.location },
+                  { label: 'Site',     value: asset.site },
+                  { label: 'Owner',    value: asset.owner },
+                ].map((row) => (
+                  <div key={row.label} className="flex items-start justify-between gap-4">
+                    <dt style={{ fontSize: '12px', color: '#A3A3A3' }}>{row.label}</dt>
+                    <dd style={{ fontSize: '13px', color: '#1A1C1C', fontWeight: 500, textAlign: 'right' }}>{row.value}</dd>
+                  </div>
+                ))}
               </dl>
             </div>
 
             {/* Compliance summary */}
             <div className="card">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Compliance Summary</h2>
+              <div className="label-sm mb-4">COMPLIANCE SUMMARY</div>
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Total Documents</span>
-                  <span className="text-lg font-semibold text-gray-900">{documents.length}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Valid</span>
-                  <span className="text-lg font-semibold text-green-600">
-                    {documents.filter(d => d.status === 'valid').length}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Expiring Soon</span>
-                  <span className="text-lg font-semibold text-amber-600">
-                    {documents.filter(d => d.status === 'expiring').length}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Expired</span>
-                  <span className="text-lg font-semibold text-red-600">
-                    {documents.filter(d => d.status === 'expired').length}
-                  </span>
-                </div>
+                {[
+                  { label: 'Total Documents', value: documents.length },
+                  { label: 'Valid',           value: documents.filter(d => d.status === 'valid').length },
+                  { label: 'Expiring Soon',   value: documents.filter(d => d.status === 'expiring').length },
+                  { label: 'Expired',         value: documents.filter(d => d.status === 'expired').length },
+                ].map((row) => (
+                  <div key={row.label} className="flex items-center justify-between">
+                    <span style={{ fontSize: '13px', color: '#474747' }}>{row.label}</span>
+                    <span style={{ fontSize: '18px', fontWeight: 700, color: '#1A1C1C' }}>{row.value}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* Right column - Documents */}
-          <div className="lg:col-span-2">
-            <div className="card">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Documents & Certifications</h2>
-                <button className="text-sm text-primary-600 hover:text-primary-900">
-                  View All
+          {/* Right — documents */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="card-flush">
+              <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: '1px solid #F3F3F3' }}>
+                <div>
+                  <div className="label-sm mb-1">ATTACHED</div>
+                  <h2 style={{ fontSize: '1rem' }}>Documents & Certifications</h2>
+                </div>
+                <button className="btn btn-primary flex items-center gap-2" style={{ fontSize: '12px', padding: '7px 12px' }}>
+                  <PlusIcon className="w-3.5 h-3.5" strokeWidth={2} />
+                  Upload
                 </button>
               </div>
-
-              <div className="space-y-4">
+              <div className="divide-y" style={{ '--tw-divide-opacity': 1 } as React.CSSProperties}>
                 {documents.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className="border border-gray-200 rounded-lg p-4 hover:border-primary-300 transition-colors"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-3 flex-1">
-                        <div className="flex-shrink-0">
-                          <DocumentTextIcon className="h-10 w-10 text-gray-400" />
+                  <div key={doc.id} className="px-6 py-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start gap-4 flex-1 min-w-0">
+                        <div className="w-9 h-9 flex items-center justify-center flex-shrink-0"
+                          style={{ backgroundColor: '#F3F3F3', borderRadius: '4px' }}>
+                          <DocumentTextIcon className="w-4 h-4" style={{ color: '#474747' }} strokeWidth={1.5} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h3 className="text-sm font-medium text-gray-900">{doc.title}</h3>
-                            {getStatusBadge(doc.status, doc.daysUntilExpiry)}
+                          <div className="flex items-center justify-between gap-3 flex-wrap">
+                            <h3 className="font-medium text-sm" style={{ color: '#1A1C1C' }}>{doc.title}</h3>
+                            <DocBadge status={doc.status} days={doc.daysUntilExpiry} />
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">{doc.issuer}</p>
-                          <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                          <p className="text-xs mt-1" style={{ color: '#A3A3A3' }}>{doc.issuer}</p>
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-3">
                             <div>
-                              <dt className="text-gray-500">Certificate No.</dt>
-                              <dd className="text-gray-900 font-mono">{doc.certificateNumber}</dd>
+                              <div className="label-sm" style={{ fontSize: '9px' }}>CERT. NO.</div>
+                              <div className="text-xs font-mono" style={{ color: '#474747' }}>{doc.certificateNumber}</div>
                             </div>
                             <div>
-                              <dt className="text-gray-500">Issue Date</dt>
-                              <dd className="text-gray-900">{doc.issueDate}</dd>
+                              <div className="label-sm" style={{ fontSize: '9px' }}>ISSUE DATE</div>
+                              <div className="text-xs" style={{ color: '#474747' }}>{doc.issueDate}</div>
                             </div>
                             {doc.expiryDate && (
                               <div>
-                                <dt className="text-gray-500">Expiry Date</dt>
-                                <dd className="text-gray-900 font-medium">{doc.expiryDate}</dd>
+                                <div className="label-sm" style={{ fontSize: '9px' }}>EXPIRY DATE</div>
+                                <div className="text-xs font-medium" style={{ color: '#1A1C1C' }}>{doc.expiryDate}</div>
                               </div>
                             )}
-                          </dl>
+                          </div>
                         </div>
                       </div>
                     </div>
-                    <div className="mt-4 flex space-x-3">
-                      <button className="text-sm text-primary-600 hover:text-primary-900">
-                        View
-                      </button>
-                      <button className="text-sm text-gray-600 hover:text-gray-900">
+                    <div className="flex gap-2 mt-4" style={{ paddingLeft: '52px' }}>
+                      <button className="btn btn-secondary flex items-center gap-1.5" style={{ fontSize: '11px', padding: '5px 10px' }}>
+                        <ArrowDownTrayIcon className="w-3 h-3" strokeWidth={2} />
                         Download
                       </button>
                       {doc.expiryDate && (
-                        <button className="text-sm text-gray-600 hover:text-gray-900">
+                        <button className="btn btn-ghost flex items-center gap-1.5" style={{ fontSize: '11px', padding: '5px 10px' }}>
+                          <ArrowUpTrayIcon className="w-3 h-3" strokeWidth={2} />
                           Upload Renewal
                         </button>
                       )}
@@ -289,65 +226,66 @@ export default function AssetProfilePage({ params }: { params: { id: string } })
                 ))}
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Maintenance history */}
-        <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Maintenance History</h2>
-          <div className="space-y-3">
-            {[
-              { date: '2024-11-15', type: 'LOLER Inspection', performed: 'Safety Inspections Ltd', result: 'Passed', notes: 'All components checked and verified' },
-              { date: '2024-08-10', type: 'Routine Service', performed: 'Site A Team', result: 'Completed', notes: 'Cleaned and lubricated all moving parts' },
-              { date: '2024-05-15', type: 'Safety Check', performed: 'Mike Davies', result: 'Passed', notes: 'Visual inspection - no issues found' },
-            ].map((maintenance, index) => (
-              <div key={index} className="flex items-start space-x-3 text-sm p-3 rounded-lg bg-gray-50">
-                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary-50 flex items-center justify-center">
-                  <DocumentTextIcon className="h-4 w-4 text-primary-600" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-900">{maintenance.type}</span>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      maintenance.result === 'Passed' || maintenance.result === 'Completed'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {maintenance.result}
-                    </span>
+            {/* Maintenance history */}
+            <div className="card-flush">
+              <div className="px-6 py-5" style={{ borderBottom: '1px solid #F3F3F3' }}>
+                <div className="label-sm mb-1">HISTORY</div>
+                <h2 style={{ fontSize: '1rem' }}>Maintenance Log</h2>
+              </div>
+              <div className="p-6 space-y-4">
+                {maintenance.map((m, i) => (
+                  <div key={i} className="flex gap-4">
+                    <div className="w-8 h-8 flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: '#F3F3F3', borderRadius: '4px' }}>
+                      <CheckCircleIcon className="w-4 h-4" style={{ color: '#474747' }} strokeWidth={1.5} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <span className="font-medium text-sm" style={{ color: '#1A1C1C' }}>{m.type}</span>
+                        <span className="badge badge-outline" style={{ fontSize: '10px' }}>{m.result}</span>
+                      </div>
+                      <p className="text-xs mt-0.5" style={{ color: '#A3A3A3' }}>
+                        {m.date} · {m.performed}
+                      </p>
+                      <p className="text-xs mt-1" style={{ color: '#474747' }}>{m.notes}</p>
+                    </div>
                   </div>
-                  <p className="text-gray-500 text-xs mt-1">
-                    {maintenance.date} · Performed by {maintenance.performed}
-                  </p>
-                  <p className="text-gray-600 text-xs mt-1">{maintenance.notes}</p>
-                </div>
+                ))}
               </div>
-            ))}
+              <div className="px-6 pb-5">
+                <button className="btn btn-secondary w-full text-sm">View Full History</button>
+              </div>
+            </div>
           </div>
-          <button className="btn-secondary w-full mt-4">View Full Maintenance History</button>
         </div>
 
-        {/* QR Code / Asset Tracking */}
+        {/* Asset tracking — no emoji */}
         <div className="card">
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-6">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">Asset Tracking</h2>
-              <p className="text-sm text-gray-600">
-                Scan QR code to quickly access asset information
-              </p>
+              <div className="label-sm mb-2">ASSET TRACKING</div>
+              <h2>QR Code</h2>
+              <p className="mt-1">Scan to quickly pull up this asset's compliance record on site.</p>
             </div>
-            <div className="flex-shrink-0">
-              <div className="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-gray-300">
-                <span className="text-4xl">📱</span>
-              </div>
+            <div className="w-28 h-28 flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: '#F3F3F3', borderRadius: '6px', border: '1px solid rgba(198,198,198,0.4)' }}>
+              <QrCodeIcon className="w-14 h-14" style={{ color: '#C6C6C6' }} strokeWidth={1} />
             </div>
           </div>
-          <div className="mt-4 flex space-x-3">
-            <button className="btn-secondary">Download QR Code</button>
-            <button className="btn-secondary">Print Asset Label</button>
+          <div className="flex gap-2 mt-5">
+            <button className="btn btn-secondary flex items-center gap-2">
+              <ArrowDownTrayIcon className="w-4 h-4" strokeWidth={1.5} />
+              Download QR
+            </button>
+            <button className="btn btn-secondary flex items-center gap-2">
+              <PrinterIcon className="w-4 h-4" strokeWidth={1.5} />
+              Print Label
+            </button>
           </div>
         </div>
+
       </div>
     </AppLayout>
-  )
+  );
 }
