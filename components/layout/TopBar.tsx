@@ -32,15 +32,30 @@ const routeConfig: Record<string, {
 
 // ── Mock search results ───────────────────────────────────────────────────────
 const mockResults = [
-  { type: 'person',  label: 'John Smith',               sub: 'Carpenter · Site A',    href: '/people/1' },
-  { type: 'person',  label: 'Sarah Johnson',            sub: 'Electrician · Site B',  href: '/people/2' },
-  { type: 'vehicle', label: 'AB12 CDE',                 sub: 'Ford Transit · Van',    href: '/vehicles/1' },
-  { type: 'vehicle', label: 'FG34 HIJ',                 sub: 'VW Caddy · Van',        href: '/vehicles/2' },
-  { type: 'asset',   label: 'SCAF-001',                 sub: 'Aluminium Scaffold',     href: '/assets/1' },
-  { type: 'asset',   label: 'LIFT-008',                 sub: 'Scissor Lift 8m',        href: '/assets/4' },
-  { type: 'doc',     label: 'CSCS Card – John Smith',  sub: 'Valid · Expires 2029',   href: '/documents' },
-  { type: 'doc',     label: 'MOT Certificate – AB12 CDE', sub: 'Expiring · 7 days',  href: '/documents' },
-  { type: 'doc',     label: 'IPAF – Sarah Johnson',    sub: 'Expired',                href: '/documents' },
+  // People
+  { type: 'person',  label: 'John Smith',     sub: 'Carpenter · Site A',       href: '/people/1',   tags: ['john smith', 'carpenter', 'site a'] },
+  { type: 'person',  label: 'Sarah Johnson',  sub: 'Electrician · Site B',     href: '/people/2',   tags: ['sarah johnson', 'electrician', 'site b'] },
+  { type: 'person',  label: 'Mike Davies',    sub: 'Site Manager · Site A',    href: '/people/3',   tags: ['mike davies', 'site manager', 'site a'] },
+  { type: 'person',  label: 'Emma Wilson',    sub: 'Labourer · Site C',        href: '/people/4',   tags: ['emma wilson', 'labourer', 'site c'] },
+  { type: 'person',  label: 'James Brown',    sub: 'Scaffolder · Site B',      href: '/people/5',   tags: ['james brown', 'scaffolder', 'site b'] },
+  // Vehicles
+  { type: 'vehicle', label: 'AB12 CDE',       sub: 'Ford Transit · Van',       href: '/vehicles/1', tags: ['ab12 cde', 'ab12cde', 'ford', 'transit', 'van', 'site a'] },
+  { type: 'vehicle', label: 'FG34 HIJ',       sub: 'VW Caddy · Van',           href: '/vehicles/2', tags: ['fg34 hij', 'fg34hij', 'volkswagen', 'vw', 'caddy', 'van', 'site b'] },
+  { type: 'vehicle', label: 'KL56 MNO',       sub: 'Mercedes Sprinter · Van',  href: '/vehicles/3', tags: ['kl56 mno', 'kl56mno', 'mercedes', 'sprinter', 'van', 'site a'] },
+  { type: 'vehicle', label: 'PQ78 RST',       sub: 'Isuzu D-Max · Pickup',     href: '/vehicles/4', tags: ['pq78 rst', 'pq78rst', 'isuzu', 'd-max', 'pickup', 'site c'] },
+  { type: 'vehicle', label: 'UV90 WXY',       sub: 'Renault Master · Van',     href: '/vehicles/5', tags: ['uv90 wxy', 'uv90wxy', 'renault', 'master', 'van', 'site b'] },
+  // Assets
+  { type: 'asset',   label: 'SCAF-001',       sub: 'Aluminium Tower Scaffold', href: '/assets/1',   tags: ['scaf-001', 'scaf001', 'scaffold', 'site a'] },
+  { type: 'asset',   label: 'COMP-023',       sub: 'Air Compressor 50L',       href: '/assets/2',   tags: ['comp-023', 'comp023', 'compressor', 'depot'] },
+  { type: 'asset',   label: 'LADD-015',       sub: 'Extension Ladder 6m',      href: '/assets/3',   tags: ['ladd-015', 'ladd015', 'ladder', 'site b'] },
+  { type: 'asset',   label: 'LIFT-008',       sub: 'Scissor Lift 8m',          href: '/assets/4',   tags: ['lift-008', 'lift008', 'scissor', 'lift', 'site c'] },
+  { type: 'asset',   label: 'TOOL-042',       sub: 'Portable Angle Grinder',   href: '/assets/5',   tags: ['tool-042', 'tool042', 'grinder', 'angle', 'site a'] },
+  // Documents
+  { type: 'doc',     label: 'CSCS Card – John Smith',        sub: 'Valid · Expires 2029',  href: '/documents', tags: ['cscs', 'cscs card', 'john smith'] },
+  { type: 'doc',     label: 'MOT Certificate – AB12 CDE',    sub: 'Expiring · 7 days',     href: '/documents', tags: ['mot', 'mot certificate', 'ab12 cde', 'ab12cde'] },
+  { type: 'doc',     label: 'IPAF – Sarah Johnson',          sub: 'Expired',               href: '/documents', tags: ['ipaf', 'sarah johnson'] },
+  { type: 'doc',     label: 'LOLER Inspection – SCAF-001',   sub: 'Expiring · 12 days',    href: '/documents', tags: ['loler', 'loler inspection', 'scaf-001', 'scaf001'] },
+  { type: 'doc',     label: 'Vehicle Insurance – FG34 HIJ',  sub: 'Valid · Expires 2026',  href: '/documents', tags: ['insurance', 'vehicle insurance', 'fg34 hij', 'fg34hij'] },
 ];
 
 function ResultIcon({ type }: { type: string }) {
@@ -68,10 +83,12 @@ export default function TopBar() {
   const wrapRef  = useRef<HTMLDivElement>(null);
 
   const results = query.trim().length > 0
-    ? mockResults.filter(r =>
-        r.label.toLowerCase().includes(query.toLowerCase()) ||
-        r.sub.toLowerCase().includes(query.toLowerCase())
-      )
+    ? mockResults.filter(r => {
+        const q = query.toLowerCase().replace(/\s+/g, '');
+        const haystack = [r.label, r.sub, ...r.tags].join(' ').toLowerCase();
+        const haystackNoSpace = haystack.replace(/\s+/g, '');
+        return haystack.includes(query.toLowerCase()) || haystackNoSpace.includes(q);
+      })
     : [];
 
   const showDropdown = focused && query.trim().length > 0;
@@ -100,7 +117,7 @@ export default function TopBar() {
     <div
       className="sticky top-0 z-30 flex items-center gap-4 px-8"
       style={{
-        height: '56px',
+        height: '64px',
         backgroundColor: '#FFFFFF',
         borderBottom: '1px solid rgba(198,198,198,0.4)',
         backdropFilter: 'blur(8px)',
