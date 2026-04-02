@@ -38,19 +38,6 @@ export default function DocumentsPage() {
       />
 
       <div className="space-y-8">
-        {/* Header */}
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="label-sm mb-1">COMPLIANCE REGISTRY</p>
-            <h1>Documents</h1>
-            <p className="mt-1">All certificates, licences, and inspections across your organisation</p>
-          </div>
-          <button className="btn btn-primary flex items-center gap-2" onClick={() => setIsUploadModalOpen(true)}>
-            <PlusIcon className="w-4 h-4" strokeWidth={2} />
-            Upload Document
-          </button>
-        </div>
-
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
@@ -65,21 +52,6 @@ export default function DocumentsPage() {
               <div className="stat-value mt-2" style={s.urgent ? { color: '#fff' } : {}}>{s.value}</div>
             </div>
           ))}
-        </div>
-
-        {/* Search */}
-        <div className="card" style={{ padding: '16px 20px' }}>
-          <div className="flex gap-3">
-            <div className="flex-1 relative">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#A3A3A3' }} strokeWidth={1.5} />
-              <input type="text" placeholder="Search by title, entity, or certificate number…" style={{ paddingLeft: '36px' }} />
-            </div>
-            <button className="btn btn-secondary">Filter</button>
-            <button className="btn btn-secondary flex items-center gap-2">
-              <ArrowDownTrayIcon className="w-4 h-4" strokeWidth={1.5} />
-              Export
-            </button>
-          </div>
         </div>
 
         {/* Document table */}

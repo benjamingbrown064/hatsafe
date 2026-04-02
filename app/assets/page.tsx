@@ -39,21 +39,6 @@ export default function AssetsPage() {
     <AppLayout>
       <div className="space-y-8">
 
-        {/* Header */}
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="label-sm mb-1">EQUIPMENT & MACHINERY</p>
-            <h1>Assets</h1>
-            <p className="mt-1">Manage equipment, machinery, and tools</p>
-          </div>
-          <Link href="/assets/new">
-            <button className="btn btn-primary flex items-center gap-2">
-              <PlusIcon className="w-4 h-4" strokeWidth={2} />
-              Add Asset
-            </button>
-          </Link>
-        </div>
-
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
@@ -68,25 +53,6 @@ export default function AssetsPage() {
               <div className="stat-value mt-2" style={s.urgent ? { color: '#fff' } : {}}>{s.value}</div>
             </div>
           ))}
-        </div>
-
-        {/* Search */}
-        <div className="card" style={{ padding: '16px 20px' }}>
-          <div className="flex gap-3">
-            <div className="flex-1 relative">
-              <MagnifyingGlassIcon
-                className="absolute w-4 h-4 pointer-events-none"
-                style={{ left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#A3A3A3' }}
-                strokeWidth={1.5}
-              />
-              <input
-                type="search"
-                placeholder="Search by asset ID, name, or type…"
-                style={{ paddingLeft: '36px' }}
-              />
-            </div>
-            <button className="btn btn-secondary">Filter</button>
-          </div>
         </div>
 
         {/* Table */}

@@ -164,13 +164,8 @@ function CalendarInner() {
     <AppLayout>
       <div className="space-y-8">
 
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <p className="label-sm mb-1">EXPIRY TRACKING</p>
-            <h1>Calendar</h1>
-            <p className="mt-1">Click any day to see expiring documents</p>
-          </div>
+        {/* Month navigation */}
+        <div className="flex justify-end">
           <div className="flex items-center gap-3">
             <button className="btn btn-secondary" style={{ padding: '8px 10px' }} onClick={prevMonth}>
               <ChevronLeftIcon className="w-4 h-4" strokeWidth={2} />

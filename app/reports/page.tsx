@@ -81,15 +81,6 @@ export default function ReportsPage() {
     <AppLayout>
       <div className="space-y-8">
 
-        {/* Header */}
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="label-sm mb-1">COMPLIANCE</p>
-            <h1>Reports</h1>
-            <p className="mt-1">Generate compliance reports and export data</p>
-          </div>
-        </div>
-
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[

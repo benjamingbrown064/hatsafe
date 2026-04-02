@@ -1,5 +1,4 @@
 import AppLayout from '@/components/layout/AppLayout';
-import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
 const people = [
   { id: '1', name: 'John Smith',   role: 'Carpenter',     team: 'Site A', documents: 3, expiring: 1, expired: 0, status: 'expiring' },
@@ -25,19 +24,6 @@ export default function PeoplePage() {
     <AppLayout>
       <div className="space-y-8">
 
-        {/* Header */}
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="label-sm mb-1">WORKFORCE</p>
-            <h1>People</h1>
-            <p className="mt-1">Manage workers, staff, and subcontractors</p>
-          </div>
-          <button className="btn btn-primary flex items-center gap-2">
-            <PlusIcon className="w-4 h-4" strokeWidth={2} />
-            Add Person
-          </button>
-        </div>
-
         {/* Stat tiles */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
@@ -52,19 +38,6 @@ export default function PeoplePage() {
               <div className="stat-value mt-2" style={s.urgent ? { color: '#fff' } : {}}>{s.value}</div>
             </div>
           ))}
-        </div>
-
-        {/* Search */}
-        <div className="card" style={{ padding: '16px 20px' }}>
-          <div className="flex gap-3">
-            <div className="flex-1 relative">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-                style={{ color: '#A3A3A3' }} strokeWidth={1.5} />
-              <input type="text" placeholder="Search by name, role, or team…"
-                style={{ paddingLeft: '36px' }} />
-            </div>
-            <button className="btn btn-secondary">Filter</button>
-          </div>
         </div>
 
         {/* Table */}

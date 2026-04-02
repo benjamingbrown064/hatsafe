@@ -1,5 +1,6 @@
 import Sidebar from './Sidebar';
 import MobileHeader from './MobileHeader';
+import TopBar from './TopBar';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -7,11 +8,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <MobileHeader />
       <div className="flex min-h-screen">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto md:pl-60">
-          <div className="max-w-[1320px] mx-auto px-8 py-10">
-            {children}
-          </div>
-        </main>
+        <div className="flex-1 flex flex-col md:pl-60">
+          <TopBar />
+          <main className="flex-1 overflow-y-auto">
+            <div className="max-w-[1320px] mx-auto px-8 py-8">
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   );

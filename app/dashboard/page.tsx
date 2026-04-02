@@ -51,23 +51,6 @@ export default function DashboardPage() {
     <AppLayout>
       <div className="space-y-8">
 
-        {/* Page header */}
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="label-sm mb-1">SYSTEMIC STATUS: OPERATIONAL</p>
-            <h1 style={{ fontSize: '2.25rem', fontWeight: 700, color: '#1A1C1C', lineHeight: 1.1 }}>
-              Compliance Ledger
-            </h1>
-            <p className="mt-2" style={{ color: '#474747', maxWidth: '480px' }}>
-              Real-time monitoring of certificates, licences, and inspections across your entire workforce and fleet.
-            </p>
-          </div>
-          <button className="btn btn-primary flex items-center gap-2">
-            <PlusIcon className="w-4 h-4" strokeWidth={2} />
-            Upload Document
-          </button>
-        </div>
-
         {/* Stat tiles */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {stats4.map((s, i) => (
