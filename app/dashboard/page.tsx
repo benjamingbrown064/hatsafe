@@ -10,39 +10,12 @@ import {
   DocumentTextIcon,
 } from '@heroicons/react/24/outline';
 
-// Centralised mock document data — same source as documents/page.tsx
-const ALL_DOCUMENTS = [
-  { status: 'valid',    daysUntilExpiry: 1095 },
-  { status: 'expiring', daysUntilExpiry: 7 },
-  { status: 'expired',  daysUntilExpiry: -37 },
-  { status: 'expiring', daysUntilExpiry: 12 },
-  { status: 'valid',    daysUntilExpiry: 298 },
-  { status: 'valid',    daysUntilExpiry: 365 },
-  { status: 'valid',    daysUntilExpiry: 285 },
-  { status: 'expiring', daysUntilExpiry: 14 },
-  { status: 'valid',    daysUntilExpiry: 880 },
-  { status: 'valid',    daysUntilExpiry: 372 },
-  { status: 'valid',    daysUntilExpiry: 295 },
-  { status: 'expiring', daysUntilExpiry: 0 },
-  { status: 'valid',    daysUntilExpiry: 183 },
-  { status: 'expired',  daysUntilExpiry: -45 },
-  { status: 'valid',    daysUntilExpiry: 150 },
-  { status: 'valid',    daysUntilExpiry: 305 },
-  { status: 'expired',  daysUntilExpiry: -330 },
-  { status: 'valid',    daysUntilExpiry: 105 },
-  { status: 'valid',    daysUntilExpiry: 335 },
-  { status: 'valid',    daysUntilExpiry: 155 },
-  { status: 'valid',    daysUntilExpiry: 213 },
-  { status: 'expiring', daysUntilExpiry: 20 },
-  { status: 'expiring', daysUntilExpiry: 3 },
-  { status: 'valid',    daysUntilExpiry: 400 },
-  { status: 'valid',    daysUntilExpiry: 120 },
-];
+import { MOCK_DOCUMENTS } from '@/lib/mockData';
 
-const expired     = ALL_DOCUMENTS.filter(d => d.status === 'expired').length;
-const expiringSoon= ALL_DOCUMENTS.filter(d => d.status === 'expiring').length;
-const valid       = ALL_DOCUMENTS.filter(d => d.status === 'valid').length;
-const pendingReview = 4; // AI review queue placeholder
+const expired      = MOCK_DOCUMENTS.filter(d => d.status === 'expired').length;
+const expiringSoon = MOCK_DOCUMENTS.filter(d => d.status === 'expiring').length;
+const valid        = MOCK_DOCUMENTS.filter(d => d.status === 'valid').length;
+const pendingReview = 4;
 
 export default function DashboardPage() {
   const stats4 = [

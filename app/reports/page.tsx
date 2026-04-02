@@ -18,44 +18,13 @@ import {
   ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 import { exportCsv } from '@/lib/exportCsv';
+import { MOCK_DOCUMENTS, MOCK_PEOPLE, MOCK_VEHICLES, MOCK_ASSETS } from '@/lib/mockData';
 
-// ── Shared mock data ──────────────────────────────────────────────────────────
-const ALL_PEOPLE = [
-  { Name: 'John Smith',    Role: 'Carpenter',    Team: 'Site A', Documents: 3, Expiring: 1, Expired: 0, Status: 'expiring' },
-  { Name: 'Sarah Johnson', Role: 'Electrician',  Team: 'Site B', Documents: 5, Expiring: 0, Expired: 0, Status: 'valid' },
-  { Name: 'Mike Davies',   Role: 'Site Manager', Team: 'Site A', Documents: 4, Expiring: 0, Expired: 1, Status: 'expired' },
-  { Name: 'Emma Wilson',   Role: 'Labourer',     Team: 'Site C', Documents: 2, Expiring: 0, Expired: 0, Status: 'valid' },
-  { Name: 'James Brown',   Role: 'Scaffolder',   Team: 'Site B', Documents: 4, Expiring: 2, Expired: 0, Status: 'expiring' },
-];
-
-const ALL_VEHICLES = [
-  { Registration: 'AB12 CDE', Make: 'Ford',       Model: 'Transit',  Type: 'Van',    Depot: 'Site A', Documents: 4, Expiring: 1, Expired: 0, Status: 'expiring' },
-  { Registration: 'FG34 HIJ', Make: 'Volkswagen', Model: 'Caddy',    Type: 'Van',    Depot: 'Site B', Documents: 3, Expiring: 0, Expired: 0, Status: 'valid' },
-  { Registration: 'KL56 MNO', Make: 'Mercedes',   Model: 'Sprinter', Type: 'Van',    Depot: 'Site A', Documents: 4, Expiring: 0, Expired: 1, Status: 'expired' },
-  { Registration: 'PQ78 RST', Make: 'Isuzu',      Model: 'D-Max',    Type: 'Pickup', Depot: 'Site C', Documents: 3, Expiring: 0, Expired: 0, Status: 'valid' },
-  { Registration: 'UV90 WXY', Make: 'Renault',    Model: 'Master',   Type: 'Van',    Depot: 'Site B', Documents: 4, Expiring: 2, Expired: 0, Status: 'expiring' },
-];
-
-const ALL_ASSETS = [
-  { 'Asset ID': 'SCAF-001', Name: 'Aluminium Tower Scaffold', Type: 'Scaffold',   Location: 'Site A', Documents: 3, Expiring: 1, Expired: 0, Status: 'expiring' },
-  { 'Asset ID': 'COMP-023', Name: 'Air Compressor 50L',       Type: 'Compressor', Location: 'Depot',  Documents: 2, Expiring: 0, Expired: 0, Status: 'valid' },
-  { 'Asset ID': 'LADD-015', Name: 'Extension Ladder 6m',      Type: 'Ladder',     Location: 'Site B', Documents: 2, Expiring: 0, Expired: 1, Status: 'expired' },
-  { 'Asset ID': 'LIFT-008', Name: 'Scissor Lift 8m',          Type: 'Access',     Location: 'Site C', Documents: 4, Expiring: 0, Expired: 0, Status: 'valid' },
-  { 'Asset ID': 'TOOL-042', Name: 'Portable Angle Grinder',   Type: 'Power Tool', Location: 'Site A', Documents: 1, Expiring: 1, Expired: 0, Status: 'expiring' },
-];
-
-const ALL_DOCS = [
-  { Title: 'CSCS Card',           Entity: 'John Smith',    'Entity Type': 'person',  'Certificate No': 'CSCS123456',    'Issue Date': '2024-01-15', 'Expiry Date': '2029-01-15', Status: 'valid',    'Days Until Expiry': 1095 },
-  { Title: 'MOT Certificate',     Entity: 'AB12 CDE',      'Entity Type': 'vehicle', 'Certificate No': 'MOT987654',     'Issue Date': '2025-02-10', 'Expiry Date': '2026-03-15', Status: 'expiring', 'Days Until Expiry': 7 },
-  { Title: 'IPAF Certificate',    Entity: 'Sarah Johnson', 'Entity Type': 'person',  'Certificate No': 'IPAF456789',    'Issue Date': '2023-06-20', 'Expiry Date': '2026-02-01', Status: 'expired',  'Days Until Expiry': -37 },
-  { Title: 'LOLER Inspection',    Entity: 'SCAF-001',      'Entity Type': 'asset',   'Certificate No': 'LOLER2024-042', 'Issue Date': '2024-11-15', 'Expiry Date': '2026-04-20', Status: 'expiring', 'Days Until Expiry': 12 },
-  { Title: 'Vehicle Insurance',   Entity: 'FG34 HIJ',      'Entity Type': 'vehicle', 'Certificate No': 'INS123789',     'Issue Date': '2025-01-01', 'Expiry Date': '2026-01-01', Status: 'valid',    'Days Until Expiry': 298 },
-  { Title: 'First Aid',           Entity: 'Mike Davies',   'Entity Type': 'person',  'Certificate No': 'FA-2024-0821',  'Issue Date': '2024-04-01', 'Expiry Date': '2027-04-01', Status: 'valid',    'Days Until Expiry': 365 },
-  { Title: 'PAT Test',            Entity: 'TOOL-042',      'Entity Type': 'asset',   'Certificate No': 'PAT-042-2025',  'Issue Date': '2025-01-10', 'Expiry Date': '2026-01-10', Status: 'valid',    'Days Until Expiry': 285 },
-  { Title: 'Road Tax',            Entity: 'KL56 MNO',      'Entity Type': 'vehicle', 'Certificate No': 'TAX-KL56-2025', 'Issue Date': '2025-03-01', 'Expiry Date': '2026-03-01', Status: 'expiring', 'Days Until Expiry': 14 },
-  { Title: 'CSCS Card',           Entity: 'Emma Wilson',   'Entity Type': 'person',  'Certificate No': 'CSCS789012',    'Issue Date': '2023-09-01', 'Expiry Date': '2028-09-01', Status: 'valid',    'Days Until Expiry': 880 },
-  { Title: 'Safety Certificate',  Entity: 'LIFT-008',      'Entity Type': 'asset',   'Certificate No': 'CERT-LIFT-008', 'Issue Date': '2024-03-15', 'Expiry Date': '2027-03-15', Status: 'valid',    'Days Until Expiry': 372 },
-];
+// Flatten to CSV-friendly shape
+const ALL_DOCS    = MOCK_DOCUMENTS.map(d => ({ Title: d.title, Entity: d.entityName, 'Entity Type': d.entityType, 'Certificate No': d.certificateNumber, 'Issue Date': d.issueDate, 'Expiry Date': d.expiryDate, Status: d.status, 'Days Until Expiry': d.daysUntilExpiry }));
+const ALL_PEOPLE  = MOCK_PEOPLE.map(p   => ({ Name: p.name,  Role: p.role, Team: p.team, Documents: p.documents, Expiring: p.expiring, Expired: p.expired, Status: p.status }));
+const ALL_VEHICLES= MOCK_VEHICLES.map(v => ({ Registration: v.registration, Make: v.make, Model: v.model, Type: v.type, Depot: v.depot, Documents: v.documents, Expiring: v.expiring, Expired: v.expired, Status: v.status }));
+const ALL_ASSETS  = MOCK_ASSETS.map(a   => ({ 'Asset ID': a.assetId, Name: a.name, Type: a.type, Location: a.location, Documents: a.documents, Expiring: a.expiring, Expired: a.expired, Status: a.status }));
 
 // ── Report generators ─────────────────────────────────────────────────────────
 function genComplianceSummary() {
