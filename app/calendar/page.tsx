@@ -129,6 +129,8 @@ function ItemBadge({ status }: { status: string }) {
 function CalendarInner() {
   const today = new Date();
   const searchParams = useSearchParams();
+  const [showAllUrgent,   setShowAllUrgent]   = useState(false);
+  const [showAllUpcoming, setShowAllUpcoming] = useState(false);
   const [year,  setYear]  = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth()); // 0-indexed
   const [selectedDay, setSelectedDay] = useState<number | null>(() => {
@@ -323,81 +325,135 @@ function CalendarInner() {
           </div>
         </div>
 
-        {/* Upcoming list */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="card-flush">
-            <div className="px-6 py-5" style={{ borderBottom: '1px solid #F3F3F3' }}>
-              <div className="label-sm mb-1">URGENT</div>
-              <h2 style={{ fontSize: '1rem' }}>Next 7 Days</h2>
-            </div>
-            <div>
-              {[
-                { date: `${months[month]} 2`,  entity: 'AB12 CDE',     type: 'MOT',       days: 0 },
-                { date: `${months[month]} 5`,  entity: 'Emma Wilson',  type: 'PASMA',     days: 3 },
-                { date: `${months[month]} 8`,  entity: 'John Smith',   type: 'CSCS Card', days: 6 },
-              ].map((item, i, arr) => (
-                <div key={i} className="flex items-center justify-between px-6 py-4"
-                  style={{ borderBottom: i < arr.length - 1 ? '1px solid #F3F3F3' : 'none' }}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: item.days === 0 ? '#000000' : '#F3F3F3', borderRadius: '4px' }}>
-                      <CalendarDaysIcon className="w-4 h-4" style={{ color: item.days === 0 ? '#FFC107' : '#474747' }} strokeWidth={1.5} />
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium" style={{ color: '#1A1C1C' }}>{item.entity}</div>
-                      <div className="text-xs" style={{ color: '#A3A3A3' }}>{item.type}</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium" style={{ color: '#1A1C1C' }}>{item.date}</div>
-                    <div className="text-xs font-semibold" style={{ color: item.days === 0 ? '#1A1C1C' : '#A3A3A3' }}>
-                      {item.days === 0 ? 'TODAY' : `${item.days}d`}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="px-6 pb-5 pt-3">
-              <button className="btn btn-black w-full text-sm">View All Urgent</button>
-            </div>
-          </div>
+        {/* Upcoming list — derived from expiryData */}
+        {(() => {
+          // Flatten all items across all days with their day number
+          const allItems = Object.entries(expiryData).flatMap(([dayStr, dayData]) =>
+            dayData.items.map(item => ({ ...item, day: parseInt(dayStr, 10) }))
+          ).sort((a, b) => a.day - b.day);
 
-          <div className="card-flush">
-            <div className="px-6 py-5" style={{ borderBottom: '1px solid #F3F3F3' }}>
-              <div className="label-sm mb-1">UPCOMING</div>
-              <h2 style={{ fontSize: '1rem' }}>Next 30 Days</h2>
-            </div>
-            <div>
-              {[
-                { date: `${months[month]} 12`, entity: 'FG34 HIJ',    type: 'Insurance',  days: 10 },
-                { date: `${months[month]} 15`, entity: 'Mike Davies', type: 'First Aid',  days: 13 },
-                { date: `${months[month]} 22`, entity: 'Van-002',     type: 'Service',    days: 20 },
-                { date: `${months[month]} 28`, entity: 'Emma Wilson', type: 'Manual Handling', days: 26 },
-              ].map((item, i, arr) => (
-                <div key={i} className="flex items-center justify-between px-6 py-4"
-                  style={{ borderBottom: i < arr.length - 1 ? '1px solid #F3F3F3' : 'none' }}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: '#F3F3F3', borderRadius: '4px' }}>
-                      <CalendarDaysIcon className="w-4 h-4" style={{ color: '#474747' }} strokeWidth={1.5} />
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium" style={{ color: '#1A1C1C' }}>{item.entity}</div>
-                      <div className="text-xs" style={{ color: '#A3A3A3' }}>{item.type}</div>
-                    </div>
+          const urgentItems   = allItems.filter(i => i.daysLeft <= 7);
+          const upcomingItems = allItems.filter(i => i.daysLeft > 7 && i.daysLeft <= 30);
+          const PREVIEW = 3;
+
+          const visibleUrgent   = showAllUrgent   ? urgentItems   : urgentItems.slice(0, PREVIEW);
+          const visibleUpcoming = showAllUpcoming ? upcomingItems : upcomingItems.slice(0, PREVIEW);
+
+          function ItemRow({ item, critical }: { item: typeof allItems[0]; critical?: boolean }) {
+            return (
+              <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F3F3F3' }}>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: critical ? '#000000' : '#F3F3F3', borderRadius: '4px' }}>
+                    <CalendarDaysIcon className="w-4 h-4"
+                      style={{ color: critical ? '#FFC107' : '#474747' }} strokeWidth={1.5} />
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium" style={{ color: '#1A1C1C' }}>{item.date}</div>
-                    <div className="text-xs" style={{ color: '#A3A3A3' }}>{item.days}d</div>
+                  <div>
+                    <div className="text-sm font-medium" style={{ color: '#1A1C1C' }}>{item.entity}</div>
+                    <div className="text-xs" style={{ color: '#A3A3A3' }}>{item.type}</div>
                   </div>
                 </div>
-              ))}
+                <div className="text-right">
+                  <div className="text-sm font-medium" style={{ color: '#1A1C1C' }}>
+                    {months[month]} {item.day}
+                  </div>
+                  <div className="text-xs font-semibold"
+                    style={{ color: item.daysLeft <= 0 ? '#1A1C1C' : '#A3A3A3' }}>
+                    {item.daysLeft <= 0 ? 'TODAY' : `${item.daysLeft}d`}
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Next 7 days */}
+              <div className="card-flush">
+                <div className="px-6 py-5" style={{ borderBottom: '1px solid #F3F3F3' }}>
+                  <div className="label-sm mb-1">URGENT</div>
+                  <h2 style={{ fontSize: '1rem' }}>
+                    Next 7 Days
+                    <span className="ml-2 label-sm" style={{ color: '#A3A3A3' }}>
+                      {urgentItems.length} ITEM{urgentItems.length !== 1 ? 'S' : ''}
+                    </span>
+                  </h2>
+                </div>
+                <div>
+                  {urgentItems.length === 0 ? (
+                    <div className="px-6 py-8 text-center">
+                      <div className="label-sm" style={{ color: '#A3A3A3' }}>ALL CLEAR</div>
+                    </div>
+                  ) : (
+                    visibleUrgent.map((item, i) => (
+                      <ItemRow key={i} item={item} critical={item.daysLeft <= 0} />
+                    ))
+                  )}
+                </div>
+                {urgentItems.length > PREVIEW && (
+                  <div className="px-6 pb-5 pt-3">
+                    <button
+                      className="btn btn-black w-full text-sm"
+                      onClick={() => setShowAllUrgent(v => !v)}>
+                      {showAllUrgent
+                        ? 'Show Less'
+                        : `View All ${urgentItems.length} Urgent Items`}
+                    </button>
+                  </div>
+                )}
+                {urgentItems.length > 0 && urgentItems.length <= PREVIEW && (
+                  <div className="px-6 pb-5 pt-3">
+                    <button className="btn btn-black w-full text-sm" disabled style={{ opacity: 0.4 }}>
+                      All urgent items shown
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Next 30 days */}
+              <div className="card-flush">
+                <div className="px-6 py-5" style={{ borderBottom: '1px solid #F3F3F3' }}>
+                  <div className="label-sm mb-1">UPCOMING</div>
+                  <h2 style={{ fontSize: '1rem' }}>
+                    Next 30 Days
+                    <span className="ml-2 label-sm" style={{ color: '#A3A3A3' }}>
+                      {upcomingItems.length} ITEM{upcomingItems.length !== 1 ? 'S' : ''}
+                    </span>
+                  </h2>
+                </div>
+                <div>
+                  {upcomingItems.length === 0 ? (
+                    <div className="px-6 py-8 text-center">
+                      <div className="label-sm" style={{ color: '#A3A3A3' }}>NOTHING UPCOMING</div>
+                    </div>
+                  ) : (
+                    visibleUpcoming.map((item, i) => (
+                      <ItemRow key={i} item={item} />
+                    ))
+                  )}
+                </div>
+                {upcomingItems.length > PREVIEW && (
+                  <div className="px-6 pb-5 pt-3">
+                    <button
+                      className="btn btn-secondary w-full text-sm"
+                      onClick={() => setShowAllUpcoming(v => !v)}>
+                      {showAllUpcoming
+                        ? 'Show Less'
+                        : `View All ${upcomingItems.length} Upcoming Items`}
+                    </button>
+                  </div>
+                )}
+                {upcomingItems.length > 0 && upcomingItems.length <= PREVIEW && (
+                  <div className="px-6 pb-5 pt-3">
+                    <button className="btn btn-secondary w-full text-sm" disabled style={{ opacity: 0.4 }}>
+                      All upcoming items shown
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="px-6 pb-5 pt-3">
-              <button className="btn btn-secondary w-full text-sm">View All Upcoming</button>
-            </div>
-          </div>
-        </div>
+          );
+        })()}
 
         {/* Export */}
         <div className="card">
