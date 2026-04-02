@@ -1,50 +1,55 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import ExpiryAlerts from '@/components/dashboard/ExpiryAlerts';
 import AISuggestions from '@/components/dashboard/AISuggestions';
 import {
-  ExclamationTriangleIcon,
-  ClockIcon,
-  CheckCircleIcon,
-  DocumentTextIcon,
   ArrowUpRightIcon,
-  PlusIcon,
   UserPlusIcon,
   ArrowDownTrayIcon,
+  DocumentTextIcon,
 } from '@heroicons/react/24/outline';
 
-interface DashboardStats {
-  expired: number;
-  expiringSoon: number;
-  valid: number;
-  pendingReview: number;
-}
+// Centralised mock document data — same source as documents/page.tsx
+const ALL_DOCUMENTS = [
+  { status: 'valid',    daysUntilExpiry: 1095 },
+  { status: 'expiring', daysUntilExpiry: 7 },
+  { status: 'expired',  daysUntilExpiry: -37 },
+  { status: 'expiring', daysUntilExpiry: 12 },
+  { status: 'valid',    daysUntilExpiry: 298 },
+  { status: 'valid',    daysUntilExpiry: 365 },
+  { status: 'valid',    daysUntilExpiry: 285 },
+  { status: 'expiring', daysUntilExpiry: 14 },
+  { status: 'valid',    daysUntilExpiry: 880 },
+  { status: 'valid',    daysUntilExpiry: 372 },
+  { status: 'valid',    daysUntilExpiry: 295 },
+  { status: 'expiring', daysUntilExpiry: 0 },
+  { status: 'valid',    daysUntilExpiry: 183 },
+  { status: 'expired',  daysUntilExpiry: -45 },
+  { status: 'valid',    daysUntilExpiry: 150 },
+  { status: 'valid',    daysUntilExpiry: 305 },
+  { status: 'expired',  daysUntilExpiry: -330 },
+  { status: 'valid',    daysUntilExpiry: 105 },
+  { status: 'valid',    daysUntilExpiry: 335 },
+  { status: 'valid',    daysUntilExpiry: 155 },
+  { status: 'valid',    daysUntilExpiry: 213 },
+  { status: 'expiring', daysUntilExpiry: 20 },
+  { status: 'expiring', daysUntilExpiry: 3 },
+  { status: 'valid',    daysUntilExpiry: 400 },
+  { status: 'valid',    daysUntilExpiry: 120 },
+];
+
+const expired     = ALL_DOCUMENTS.filter(d => d.status === 'expired').length;
+const expiringSoon= ALL_DOCUMENTS.filter(d => d.status === 'expiring').length;
+const valid       = ALL_DOCUMENTS.filter(d => d.status === 'valid').length;
+const pendingReview = 4; // AI review queue placeholder
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchStats() {
-      try {
-        const response = await fetch('/api/dashboard/stats');
-        if (response.ok) setStats(await response.json());
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchStats();
-  }, []);
-
   const stats4 = [
-    { label: 'EXPIRED',       value: loading ? '—' : String(stats?.expired || 0),      urgent: true },
-    { label: 'EXPIRING SOON', value: loading ? '—' : String(stats?.expiringSoon || 0), urgent: false },
-    { label: 'COMPLIANT',     value: loading ? '—' : String(stats?.valid || 0),         urgent: false },
-    { label: 'PENDING REVIEW',value: loading ? '—' : String(stats?.pendingReview || 0), urgent: false },
+    { label: 'EXPIRED',        value: String(expired),      urgent: true },
+    { label: 'EXPIRING SOON',  value: String(expiringSoon), urgent: false },
+    { label: 'COMPLIANT',      value: String(valid),        urgent: false },
+    { label: 'PENDING REVIEW', value: String(pendingReview),urgent: false },
   ];
 
   return (
