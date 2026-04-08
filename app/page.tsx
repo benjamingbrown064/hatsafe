@@ -1,460 +1,309 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { CheckCircle, Upload, Bell, BarChart3, Shield, Search, FileText, Users } from 'lucide-react';
-import Link from 'next/link';
-
-// Animation variants
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
-
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-};
-
-export default function MarketingHome() {
+export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white">
-      {/* Sticky Navigation */}
-      <motion.nav
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100"
-      >
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+    <>
+      <style>{`
+        :root {
+          --cream: #f5f0e8;
+          --charcoal: #1a1c1c;
+          --amber: #ffc107;
+          --amber-dim: #fabd00;
+          --warm-grey: #4f4632;
+          --muted: #827660;
+        }
+        .bg-cream { background-color: var(--cream); }
+        .bg-charcoal { background-color: var(--charcoal); }
+        .bg-amber { background-color: var(--amber); }
+        .text-cream { color: var(--cream); }
+        .text-amber { color: var(--amber); }
+        .text-warm-grey { color: var(--warm-grey); }
+        .border-amber { border-color: var(--amber); }
+        .step-number { color: var(--amber); font-size: 2.5rem; font-weight: 900; line-height: 1; }
+        .glass-card {
+          background: rgba(255,255,255,0.8);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+        }
+      `}</style>
+      {/* Nav */}
+      <header className="fixed top-0 w-full z-50" style={{backgroundColor: 'var(--cream)'}}>
+        <nav className="flex justify-between items-center px-6 md:px-12 py-4 max-w-7xl mx-auto">
           <div className="flex items-center gap-2">
-            <Shield className="w-8 h-8 text-emerald-600" />
-            <span className="text-2xl font-bold text-gray-900">HatSafe</span>
+            <span className="material-symbols-outlined" style={{color: 'var(--amber)', fontVariationSettings: "'FILL' 1"}}>security</span>
+            <span className="text-xl font-black tracking-tighter" style={{color: 'var(--charcoal)'}}>Hatsafe</span>
           </div>
-          <div className="hidden md:flex items-center gap-8">
-            <Link href="#features" className="text-gray-600 hover:text-gray-900 transition">Features</Link>
-            <Link href="#pricing" className="text-gray-600 hover:text-gray-900 transition">Pricing</Link>
-            <Link href="/login" className="text-gray-600 hover:text-gray-900 transition">Login</Link>
-            <Link href="#demo" className="px-6 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition font-medium">
-              Book a demo
-            </Link>
+          <div className="hidden md:flex gap-8 items-center">
+            <a href="#" className="text-sm font-medium" style={{color: 'var(--charcoal)', opacity: 0.7}}>Products</a>
+            <a href="#" className="text-sm font-medium" style={{color: 'var(--charcoal)', opacity: 0.7}}>Compliance</a>
+            <a href="#" className="text-sm font-medium" style={{color: 'var(--charcoal)', opacity: 0.7}}>Pricing</a>
+            <a href="#" className="text-sm font-medium" style={{color: 'var(--charcoal)', opacity: 0.7}}>Sign in</a>
           </div>
-        </div>
-      </motion.nav>
-
-      {/* Hero Section */}
-      <section className="pt-40 pb-32 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={staggerContainer}
-              className="space-y-8"
-            >
-              <motion.h1
-                variants={fadeInUp}
-                className="text-6xl lg:text-7xl font-bold text-gray-900 leading-tight"
-              >
-                Stop chasing certificates in spreadsheets and inboxes
-              </motion.h1>
-              <motion.p
-                variants={fadeInUp}
-                className="text-xl text-gray-600 max-w-2xl leading-relaxed"
-              >
-                HatSafe gives construction and trade businesses one simple place to store, track, and manage compliance documents — with automated expiry alerts and AI-assisted document processing.
-              </motion.p>
-              <motion.div
-                variants={fadeInUp}
-                className="flex flex-col sm:flex-row gap-4"
-              >
-                <Link href="#demo" className="px-8 py-4 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition font-medium text-lg">
-                  Book a demo
-                </Link>
-                <Link href="#how-it-works" className="px-8 py-4 border-2 border-gray-200 text-gray-900 rounded-lg hover:border-gray-300 transition font-medium text-lg">
-                  See how it works
-                </Link>
-              </motion.div>
-              <motion.div
-                variants={fadeInUp}
-                className="pt-8 space-y-3"
-              >
-                {[
-                  'Track employee, contractor, and supplier compliance in one place',
-                  'Get ahead of expired certificates before they become a problem',
-                  'Cut admin time spent chasing paperwork manually'
-                ].map((point, i) => (
-                  <div key={i} className="flex items-start gap-3">
-                    <CheckCircle className="w-6 h-6 text-emerald-600 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-700 text-lg">{point}</span>
-                  </div>
-                ))}
-              </motion.div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="relative"
-            >
-              <div className="aspect-[4/3] rounded-2xl bg-gradient-to-br from-emerald-50 to-gray-50 border border-gray-200 shadow-2xl overflow-hidden">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Shield className="w-32 h-32 text-emerald-200" />
+          <a href="#" className="px-5 py-2.5 rounded-xl font-bold text-sm active:scale-95 transition-transform" style={{backgroundColor: 'var(--amber)', color: 'var(--charcoal)'}}>
+            Get started
+          </a>
+        </nav>
+      </header>
+      <main className="pt-20" style={{backgroundColor: 'var(--cream)'}}>
+        {/* Hero */}
+        <section className="px-6 md:px-12 pt-20 pb-16 max-w-7xl mx-auto text-center">
+          <span className="inline-block text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-6" style={{backgroundColor: 'rgba(255,193,7,0.15)', color: 'var(--warm-grey)'}}>
+            Safety Compliance Reimagined
+          </span>
+          <h1 className="text-4xl md:text-6xl font-black tracking-tight mb-6 max-w-4xl mx-auto leading-tight" style={{color: 'var(--charcoal)'}}>
+            Stop chasing certificates in{' '}
+            <em>spreadsheets</em>{' '}
+            and inboxes
+          </h1>
+          <p className="text-lg mb-10 max-w-2xl mx-auto leading-relaxed" style={{color: 'var(--warm-grey)'}}>
+            HatSafe centralises your compliance documents, automates renewal tracking, and keeps your workforce audit-ready at all times.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+            <a href="#" className="px-8 py-4 rounded-xl font-bold text-lg transition-all active:scale-95" style={{backgroundColor: 'var(--amber)', color: 'var(--charcoal)'}}>
+              Get Started Free
+            </a>
+            <a href="#" className="px-8 py-4 rounded-xl font-bold text-lg border-2 transition-all" style={{borderColor: 'var(--charcoal)', color: 'var(--charcoal)'}}>
+              Book a Demo
+            </a>
+          </div>
+          <div className="relative w-full max-w-5xl mx-auto">
+            <div className="rounded-2xl overflow-hidden shadow-2xl border-4" style={{borderColor: 'rgba(26,28,28,0.1)'}}>
+              <img
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyRpK3wA0hEhKr27PYtd7C9oFg5sXorxP7QDMgHxUI_np3f_kPMyjemTj-Wm_KWXMa-nd5oUTkGsOvcXLl0KbhxVEo_o0HpEnygmXEKEH3Mq0Z0mHBj1jINd7ZEutobwUfLzmRxjehxMFZ6Q8-xuzOtZT3Y5QAWUzVzdVhjIg0P5U9THAeZ1yAE7ECyCL8W6mG-UvVWMFawb8Ul0rYabSpoyXtM5VgHf3RM1CAC0KfFDvJFwSJylLGUvPYzLYv5UOR8vLa9kpQiVI"
+                alt="HatSafe compliance dashboard"
+                className="w-full h-auto"
+              />
+            </div>
+            <div className="absolute -bottom-6 -left-4 hidden md:block glass-card p-5 rounded-xl shadow-xl border" style={{borderColor: 'rgba(255,255,255,0.3)', maxWidth: '220px'}}>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="material-symbols-outlined" style={{color: 'var(--amber)', fontVariationSettings: "'FILL' 1"}}>verified_user</span>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-tight" style={{color: 'var(--warm-grey)'}}>Status</p>
+                  <p className="font-bold text-sm" style={{color: 'var(--charcoal)'}}>100% Audit Ready</p>
                 </div>
               </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Problem Section */}
-      <section className="py-32 px-6 bg-gray-50">
-        <div className="max-w-4xl mx-auto text-center space-y-6">
-          <motion.h2
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeInUp}
-            className="text-5xl font-bold text-gray-900"
-          >
-            Compliance gets messy fast when everything lives in different places
-          </motion.h2>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeInUp}
-            className="space-y-6 text-lg text-gray-600 leading-relaxed"
-          >
-            <p>
-              Most teams do not lose control of compliance because they do not care.
-            </p>
-            <p>
-              They lose control because certificates, licences, and training records end up spread across spreadsheets, inboxes, shared drives, and filing systems.
-            </p>
-            <p className="font-medium text-gray-900">That creates the same problems over and over:</p>
-          </motion.div>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="grid sm:grid-cols-2 gap-6 pt-8 text-left"
-          >
-            {[
-              'expired documents slip through',
-              'teams waste time chasing updates',
-              'managers cannot see what is missing',
-              'audits become stressful and reactive'
-            ].map((problem, i) => (
-              <motion.div
-                key={i}
-                variants={fadeInUp}
-                className="p-6 bg-white rounded-xl border border-gray-200"
-              >
-                <p className="text-gray-700 text-lg">{problem}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-          <motion.p
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeInUp}
-            className="text-xl font-medium text-gray-900 pt-8"
-          >
-            HatSafe fixes that by giving you one operational system for compliance documents.
-          </motion.p>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section id="how-it-works" className="py-32 px-6">
-        <div className="max-w-6xl mx-auto">
-          <motion.h2
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeInUp}
-            className="text-5xl font-bold text-gray-900 text-center mb-20"
-          >
-            How HatSafe works
-          </motion.h2>
-          <div className="space-y-32">
-            {[
-              {
-                step: '1',
-                title: 'Upload documents',
-                description: 'Add certificates, licences, training records, insurance documents, and compliance files in one place.',
-                icon: Upload
-              },
-              {
-                step: '2',
-                title: 'Organise automatically',
-                description: 'HatSafe helps pull out the important details, including certificate type, holder, and expiry date.',
-                icon: FileText
-              },
-              {
-                step: '3',
-                title: 'Track what matters',
-                description: 'See upcoming renewals, expired records, and missing documents across your workforce and subcontractors.',
-                icon: BarChart3
-              },
-              {
-                step: '4',
-                title: 'Take action early',
-                description: 'Use alerts and reporting to fix issues before they become operational or compliance problems.',
-                icon: Bell
-              }
-            ].map((step, i) => {
-              const Icon = step.icon;
-              return (
-                <motion.div
-                  key={i}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  variants={fadeInUp}
-                  className={`grid md:grid-cols-2 gap-16 items-center ${i % 2 === 1 ? 'md:flex-row-reverse' : ''}`}
-                >
-                  <div className={i % 2 === 1 ? 'md:order-2' : ''}>
-                    <div className="inline-block px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium mb-6">
-                      Step {step.step}
-                    </div>
-                    <h3 className="text-4xl font-bold text-gray-900 mb-6">{step.title}</h3>
-                    <p className="text-xl text-gray-600 leading-relaxed">{step.description}</p>
-                  </div>
-                  <div className={i % 2 === 1 ? 'md:order-1' : ''}>
-                    <div className="aspect-[4/3] rounded-2xl bg-gradient-to-br from-emerald-50 to-gray-50 border border-gray-200 flex items-center justify-center">
-                      <Icon className="w-24 h-24 text-emerald-400" />
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Benefits Bento Grid */}
-      <section id="features" className="py-32 px-6 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
-          <motion.h2
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeInUp}
-            className="text-5xl font-bold text-gray-900 text-center mb-20"
-          >
-            Built for real compliance admin, not generic document storage
-          </motion.h2>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="grid md:grid-cols-2 gap-6"
-          >
-            {[
-              {
-                title: 'One source of truth',
-                description: 'Keep employee, contractor, and supplier documents in one searchable place.',
-                icon: Shield
-              },
-              {
-                title: 'Expiry visibility',
-                description: 'Know what is due to expire before it catches your team out.',
-                icon: Bell
-              },
-              {
-                title: 'Less admin time',
-                description: 'Reduce manual chasing and repetitive spreadsheet work.',
-                icon: CheckCircle
-              },
-              {
-                title: 'Better operational control',
-                description: 'Give managers a live view of what is compliant, what is missing, and what needs attention.',
-                icon: BarChart3
-              }
-            ].map((benefit, i) => {
-              const Icon = benefit.icon;
-              return (
-                <motion.div
-                  key={i}
-                  variants={fadeInUp}
-                  className="p-8 bg-white rounded-2xl border border-gray-200 hover:shadow-lg transition"
-                >
-                  <Icon className="w-12 h-12 text-emerald-600 mb-6" />
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">{benefit.title}</h3>
-                  <p className="text-lg text-gray-600 leading-relaxed">{benefit.description}</p>
-                </motion.div>
-              );
-            })}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Social Proof */}
-      <section className="py-32 px-6">
-        <div className="max-w-5xl mx-auto">
-          <motion.h2
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeInUp}
-            className="text-5xl font-bold text-gray-900 text-center mb-20"
-          >
-            Made for businesses that cannot afford compliance gaps
-          </motion.h2>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="space-y-8"
-          >
-            {[
-              'HatSafe gave us one clear view of certification status instead of three different spreadsheets.',
-              'We stopped reacting to expired documents and started dealing with issues before they became a problem.',
-              'It cut the admin burden massively and made audit prep far easier.'
-            ].map((quote, i) => (
-              <motion.blockquote
-                key={i}
-                variants={fadeInUp}
-                className="p-8 bg-gray-50 rounded-2xl border border-gray-200"
-              >
-                <p className="text-2xl text-gray-700 leading-relaxed italic">"{quote}"</p>
-              </motion.blockquote>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Pricing Teaser */}
-      <section id="pricing" className="py-32 px-6 bg-gray-50">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
-          <motion.h2
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeInUp}
-            className="text-5xl font-bold text-gray-900"
-          >
-            Simple pricing that matches growing teams
-          </motion.h2>
-          <motion.p
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeInUp}
-            className="text-xl text-gray-600 leading-relaxed"
-          >
-            HatSafe is designed for practical adoption, not drawn-out enterprise sales cycles.
-          </motion.p>
-          <motion.p
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeInUp}
-            className="text-2xl text-gray-900 font-medium"
-          >
-            Plans start from <span className="text-emerald-600 font-bold">£49/month</span>, with options for growing teams that need more visibility, reporting, and control.
-          </motion.p>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeInUp}
-          >
-            <Link href="#demo" className="inline-block px-8 py-4 border-2 border-gray-900 text-gray-900 rounded-lg hover:bg-gray-900 hover:text-white transition font-medium text-lg">
-              View pricing
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section id="demo" className="py-32 px-6">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
-          <motion.h2
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeInUp}
-            className="text-5xl font-bold text-gray-900"
-          >
-            Get control of compliance before it becomes a fire drill
-          </motion.h2>
-          <motion.p
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeInUp}
-            className="text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto"
-          >
-            If your team is still managing certificates across spreadsheets, inboxes, and folders, HatSafe gives you a cleaner way to stay on top of it.
-          </motion.p>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeInUp}
-            className="flex flex-col sm:flex-row gap-4 justify-center pt-8"
-          >
-            <Link href="/signup" className="px-8 py-4 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition font-medium text-lg">
-              Book a demo
-            </Link>
-            <Link href="mailto:hello@hatsafe.com" className="px-8 py-4 border-2 border-gray-200 text-gray-900 rounded-lg hover:border-gray-300 transition font-medium text-lg">
-              Talk through your setup
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-gray-200 py-16 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Shield className="w-8 h-8 text-emerald-600" />
-                <span className="text-xl font-bold text-gray-900">HatSafe</span>
+              <div className="w-full h-2 rounded-full overflow-hidden" style={{backgroundColor: 'rgba(26,28,28,0.1)'}}>
+                <div className="h-full w-full rounded-full" style={{backgroundColor: 'var(--amber)'}}></div>
               </div>
-              <p className="text-gray-600">
-                AI-powered certificate and compliance management for construction and trade businesses.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-bold text-gray-900 mb-4">Product</h4>
-              <ul className="space-y-3">
-                <li><Link href="#features" className="text-gray-600 hover:text-gray-900">Features</Link></li>
-                <li><Link href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</Link></li>
-                <li><Link href="/signup" className="text-gray-600 hover:text-gray-900">Sign up</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-gray-900 mb-4">Company</h4>
-              <ul className="space-y-3">
-                <li><Link href="/about" className="text-gray-600 hover:text-gray-900">About</Link></li>
-                <li><Link href="/contact" className="text-gray-600 hover:text-gray-900">Contact</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-gray-900 mb-4">Legal</h4>
-              <ul className="space-y-3">
-                <li><Link href="/privacy" className="text-gray-600 hover:text-gray-900">Privacy</Link></li>
-                <li><Link href="/terms" className="text-gray-600 hover:text-gray-900">Terms</Link></li>
-              </ul>
             </div>
           </div>
-          <div className="pt-8 border-t border-gray-200 text-center text-gray-600">
-            <p>&copy; 2026 HatSafe. All rights reserved.</p>
+        </section>
+        {/* Social Proof */}
+        <section className="py-12 px-6" style={{backgroundColor: 'rgba(26,28,28,0.04)'}}>
+          <div className="max-w-7xl mx-auto">
+            <p className="text-center text-xs font-bold uppercase tracking-widest mb-8" style={{color: 'var(--muted)'}}>Trusted by 500+ industrial leaders</p>
+            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16" style={{opacity: 0.4, filter: 'grayscale(1)'}}>
+              <span className="text-xl font-black italic tracking-tighter" style={{color: 'var(--charcoal)'}}>CONSTRUCTO</span>
+              <span className="text-xl font-black tracking-widest" style={{color: 'var(--charcoal)'}}>SAFETYFIRST</span>
+              <span className="text-xl font-black" style={{color: 'var(--charcoal)'}}>IRONWORKS</span>
+              <span className="text-xl font-black tracking-tight" style={{color: 'var(--charcoal)'}}>BUILD-TECH</span>
+              <span className="text-xl font-black italic" style={{color: 'var(--charcoal)'}}>INDUS-CORP</span>
+            </div>
+          </div>
+        </section>
+        {/* Problem — dark */}
+        <section className="py-24 px-6 bg-charcoal">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4 text-cream leading-tight">
+                Compliance gets messy fast when<br className="hidden md:block" /> everything lives in different places
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                { title: 'Fragmented Data', desc: 'Certificates lost in personal email inboxes and disparate local drives. No single source of truth.' },
+                { title: 'Silent Expirations', desc: 'Missing a renewal date leads to costly site closures, fines, and legal liability.' },
+                { title: 'Admin Fatigue', desc: 'Hours wasted manually updating spreadsheets instead of managing sites and teams.' },
+              ].map((item) => (
+                <div key={item.title} className="p-8 rounded-xl border" style={{backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)'}}>
+                  <span className="material-symbols-outlined mb-4 block" style={{color: '#ba1a1a'}}>cancel</span>
+                  <h3 className="text-xl font-bold mb-2 text-cream">{item.title}</h3>
+                  <p className="text-sm leading-relaxed" style={{color: 'rgba(245,240,232,0.6)'}}>{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+        {/* Solution */}
+        <section className="py-24 px-6 bg-cream">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-widest mb-4 block" style={{color: 'var(--warm-grey)'}}>A simpler way to stay compliant</span>
+              <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-6" style={{color: 'var(--charcoal)'}}>
+                One place to see current status, expiring documents, and missing records.
+              </h2>
+              <p className="text-lg leading-relaxed mb-8" style={{color: 'var(--warm-grey)'}}>
+                Stop chasing documents across email threads, shared drives, and spreadsheets. HatSafe gives every team a single, searchable compliance record.
+              </p>
+              <a href="#" className="inline-flex items-center gap-2 font-bold" style={{color: 'var(--charcoal)'}}>
+                See how it works <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              </a>
+            </div>
+            <div className="rounded-xl overflow-hidden shadow-xl border" style={{borderColor: 'rgba(26,28,28,0.1)'}}>
+              <img
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQDzCNSijJ87hb7qJGXqlpvR_fk5V4BepX8RbZ4fjHxqYQRCvoQLumFJj8RZ7NySVc31q7WmgVoSr5yayDqwpG2MHjd-dT3HGqoOG0fbN4dZAsaQiIF1Jy7OviBrC4alqYmIjdgqqLScQYjaWliEsx0GkVO5L_zw_GnD1F_FBDyS2vi0eb52LHvKu_QOS5UDwz6rVUzScVc7AUebhJPV-HQTUhYu2ar4xChVBDdfX6PgookHmaPOIsF2OI5NMZVuTWnVA769rLUQA"
+                alt="HatSafe document management"
+                className="w-full h-auto"
+              />
+            </div>
+          </div>
+        </section>
+        {/* Steps — dark */}
+        <section className="py-24 px-6 bg-charcoal">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4 text-cream">
+                Four steps from incoming paperwork<br className="hidden md:block" /> to controlled compliance
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {[
+                { n: '01', title: 'Upload', desc: 'Drag and drop any certificate or document. AI extracts the key data automatically.' },
+                { n: '02', title: 'Organise', desc: 'Automated tagging groups documents by worker, project, site, or equipment type.' },
+                { n: '03', title: 'Track', desc: 'Smart alerts notify you and your workers 90, 60, and 30 days before expiry.' },
+                { n: '04', title: 'Act', desc: 'Generate one-click audit reports for site inspections, tenders, and regulators.' },
+              ].map((step) => (
+                <div key={step.n} className="p-8 rounded-xl border" style={{backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)'}}>
+                  <div className="step-number mb-4">{step.n}</div>
+                  <h3 className="text-xl font-bold mb-2 text-cream">{step.title}</h3>
+                  <p className="text-sm leading-relaxed" style={{color: 'rgba(245,240,232,0.6)'}}>{step.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+        {/* Benefits */}
+        <section className="py-24 px-6 bg-cream">
+          <div className="max-w-7xl mx-auto">
+            <span className="text-xs font-bold uppercase tracking-widest mb-4 block" style={{color: 'var(--warm-grey)'}}>Better visibility, less admin, stronger control</span>
+            <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-12" style={{color: 'var(--charcoal)'}}>Built for the architect, the site manager, and the auditor.</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                { icon: 'hub', title: 'One source of truth', desc: 'Every document, every worker, every certificate in one searchable place. No more hunting through folders and inboxes.' },
+                { icon: 'notifications_active', title: 'Expiry visibility', desc: 'Never get caught off guard. Automated alerts reach the right people weeks before anything expires.' },
+                { icon: 'schedule', title: 'Less admin time', desc: 'AI extracts data from uploaded documents automatically. Stop manually keying in dates and names.' },
+                { icon: 'security', title: 'Better operations control', desc: 'Real-time compliance scores and audit-ready reports mean you are always prepared for inspections.' },
+              ].map((b) => (
+                <div key={b.title} className="p-8 rounded-xl border" style={{backgroundColor: 'rgba(26,28,28,0.04)', borderColor: 'rgba(26,28,28,0.08)'}}>
+                  <span className="material-symbols-outlined text-3xl mb-4 block" style={{color: 'var(--amber)'}}>{b.icon}</span>
+                  <h3 className="text-xl font-bold mb-2" style={{color: 'var(--charcoal)'}}>{b.title}</h3>
+                  <p className="text-sm leading-relaxed" style={{color: 'var(--warm-grey)'}}>{b.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+        {/* Testimonials */}
+        <section className="py-24 px-6 bg-cream">
+          <div className="max-w-7xl mx-auto">
+            <span className="text-xs font-bold uppercase tracking-widest mb-4 block" style={{color: 'var(--warm-grey)'}}>Early customer language, presented with restraint</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                { quote: 'HatSafe reduced our administrative overhead by 60%. We no longer worry about site inspections because we know we are compliant.', name: 'Mark Stevenson', role: 'Site Director, BuildCorp UK' },
+                { quote: 'The automated alerts are a game changer. We went from 12% expired documents to 0% in just three months.', name: 'Sarah Jenkins', role: 'Compliance Manager, IronWorks' },
+                { quote: 'Elegant and powerful. It is the first safety software our site managers actually enjoy using. Highly recommended.', name: 'David Chen', role: 'Operations Lead, SafetyFirst' },
+              ].map((t) => (
+                <div key={t.name} className="p-8 rounded-xl border flex flex-col gap-6" style={{backgroundColor: 'rgba(26,28,28,0.04)', borderColor: 'rgba(26,28,28,0.08)'}}>
+                  <p className="text-base leading-relaxed italic flex-1" style={{color: 'var(--charcoal)'}}>"{t.quote}"</p>
+                  <div>
+                    <p className="font-bold text-sm" style={{color: 'var(--charcoal)'}}>{t.name}</p>
+                    <p className="text-xs" style={{color: 'var(--warm-grey)'}}>{t.role}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+        {/* Pricing */}
+        <section className="py-24 px-6 bg-cream">
+          <div className="max-w-7xl mx-auto">
+            <div className="mb-12">
+              <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-2" style={{color: 'var(--charcoal)'}}>Simple pricing from £49 per month</h2>
+              <p style={{color: 'var(--warm-grey)'}}>One pricing model for entire teams. No per-seat surprises.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+              <div className="p-8 rounded-xl border flex flex-col gap-6" style={{borderColor: 'rgba(26,28,28,0.12)'}}>
+                <div>
+                  <h3 className="text-lg font-bold mb-1" style={{color: 'var(--charcoal)'}}>Starter</h3>
+                  <div className="text-4xl font-black mb-1" style={{color: 'var(--charcoal)'}}>£49<span className="text-base font-normal" style={{color: 'var(--warm-grey)'}}>/mo</span></div>
+                  <p className="text-sm" style={{color: 'var(--warm-grey)'}}>For small teams getting started.</p>
+                </div>
+                <ul className="flex flex-col gap-3 text-sm flex-1" style={{color: 'var(--charcoal)'}}>
+                  {['Up to 25 workers', 'Basic expiry alerts', 'Email support', 'Document storage'].map(f => (
+                    <li key={f} className="flex items-center gap-2"><span className="material-symbols-outlined text-sm" style={{color: 'var(--amber)'}}>check</span>{f}</li>
+                  ))}
+                </ul>
+                <a href="#" className="mt-auto w-full py-3 rounded-xl font-bold text-center border-2" style={{borderColor: 'var(--charcoal)', color: 'var(--charcoal)'}}>Choose Starter</a>
+              </div>
+              <div className="p-8 rounded-xl flex flex-col gap-6 relative" style={{backgroundColor: 'var(--charcoal)', transform: 'scale(1.05)', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.4)'}}>
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-xs font-black px-4 py-1 rounded-full uppercase tracking-widest" style={{backgroundColor: 'var(--amber)', color: 'var(--charcoal)'}}>Most Popular</div>
+                <div>
+                  <h3 className="text-lg font-bold mb-1 text-cream">Professional</h3>
+                  <div className="text-4xl font-black mb-1 text-cream">£99<span className="text-base font-normal" style={{color: 'rgba(245,240,232,0.5)'}}>/mo</span></div>
+                  <p className="text-sm" style={{color: 'rgba(245,240,232,0.6)'}}>For growing teams and site managers.</p>
+                </div>
+                <ul className="flex flex-col gap-3 text-sm flex-1 text-cream">
+                  {['Up to 100 workers', 'SMS + Email alerts', 'AI document extraction', 'Advanced analytics', 'Priority support'].map(f => (
+                    <li key={f} className="flex items-center gap-2"><span className="material-symbols-outlined text-sm" style={{color: 'var(--amber)'}}>check</span>{f}</li>
+                  ))}
+                </ul>
+                <a href="#" className="mt-auto w-full py-3 rounded-xl font-bold text-center" style={{backgroundColor: 'var(--amber)', color: 'var(--charcoal)'}}>Choose Professional</a>
+              </div>
+              <div className="p-8 rounded-xl border flex flex-col gap-6" style={{borderColor: 'rgba(26,28,28,0.12)'}}>
+                <div>
+                  <h3 className="text-lg font-bold mb-1" style={{color: 'var(--charcoal)'}}>Enterprise</h3>
+                  <div className="text-4xl font-black mb-1" style={{color: 'var(--charcoal)'}}>Custom</div>
+                  <p className="text-sm" style={{color: 'var(--warm-grey)'}}>For large-scale operations.</p>
+                </div>
+                <ul className="flex flex-col gap-3 text-sm flex-1" style={{color: 'var(--charcoal)'}}>
+                  {['Unlimited workers', 'Dedicated account manager', 'Custom API integrations', 'SSO & advanced security', 'SLA guarantee'].map(f => (
+                    <li key={f} className="flex items-center gap-2"><span className="material-symbols-outlined text-sm" style={{color: 'var(--amber)'}}>check</span>{f}</li>
+                  ))}
+                </ul>
+                <a href="#" className="mt-auto w-full py-3 rounded-xl font-bold text-center border-2" style={{borderColor: 'var(--charcoal)', color: 'var(--charcoal)'}}>Contact Sales</a>
+              </div>
+            </div>
+          </div>
+        </section>
+        {/* CTA — dark */}
+        <section className="py-24 px-6 bg-charcoal">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4 text-cream">Book a demo and talk through your setup</h2>
+            <p className="text-lg mb-10" style={{color: 'rgba(245,240,232,0.6)'}}>We will walk you through how HatSafe fits your team, your certifications, and your compliance requirements.</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a href="#" className="px-8 py-4 rounded-xl font-bold text-lg" style={{backgroundColor: 'var(--amber)', color: 'var(--charcoal)'}}>Book a Demo</a>
+              <a href="#" className="px-8 py-4 rounded-xl font-bold text-lg border-2 text-cream" style={{borderColor: 'rgba(245,240,232,0.3)'}}>Start Free</a>
+            </div>
+          </div>
+        </section>
+      </main>
+      {/* Footer */}
+      <footer className="py-16 px-6 md:px-12 bg-charcoal border-t" style={{borderColor: 'rgba(255,255,255,0.08)'}}>
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="material-symbols-outlined" style={{color: 'var(--amber)', fontVariationSettings: "'FILL' 1"}}>security</span>
+              <span className="text-lg font-black text-cream tracking-tighter">Hatsafe</span>
+            </div>
+            <p className="text-xs uppercase tracking-widest" style={{color: 'rgba(245,240,232,0.4)'}}>Industrial Safety &amp; Compliance Operating System</p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <h4 className="font-bold text-sm text-cream">Product</h4>
+            <a href="#" className="text-xs uppercase tracking-widest" style={{color: 'rgba(245,240,232,0.4)'}}>Platform</a>
+            <a href="#" className="text-xs uppercase tracking-widest" style={{color: 'rgba(245,240,232,0.4)'}}>Safety Standards</a>
+          </div>
+          <div className="flex flex-col gap-3">
+            <h4 className="font-bold text-sm text-cream">Legal</h4>
+            <a href="#" className="text-xs uppercase tracking-widest" style={{color: 'rgba(245,240,232,0.4)'}}>Privacy Policy</a>
+            <a href="#" className="text-xs uppercase tracking-widest" style={{color: 'rgba(245,240,232,0.4)'}}>Terms of Service</a>
+          </div>
+          <div className="flex flex-col gap-3">
+            <h4 className="font-bold text-sm text-cream">Support</h4>
+            <a href="#" className="text-xs uppercase tracking-widest" style={{color: 'rgba(245,240,232,0.4)'}}>Contact Support</a>
+            <p className="text-xs uppercase tracking-widest mt-4" style={{color: 'rgba(245,240,232,0.3)'}}>© 2025 HatSafe. All rights reserved.</p>
           </div>
         </div>
       </footer>
-    </div>
+    </>
   );
 }
