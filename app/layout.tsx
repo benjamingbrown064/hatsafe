@@ -10,8 +10,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "HatSafe - Stop chasing certificates in spreadsheets",
-  description: "HatSafe gives construction and trade businesses one simple place to store, track, and manage compliance documents — with automated expiry alerts and AI-assisted document processing.",
+  title: "HatSafe - AI-Powered Compliance for Construction",
+  description: "Automatically track certificates, licenses, and inspections across your team, vehicles, and equipment.",
 };
 
 export default function RootLayout({
