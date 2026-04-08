@@ -1,564 +1,460 @@
 'use client';
 
-import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { CheckCircle, Upload, Bell, BarChart3, Shield, Search, FileText, Users } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
-import {
-  SparklesIcon,
-  BellAlertIcon,
-  ChartBarIcon,
-  DocumentTextIcon,
-  UsersIcon,
-  TruckIcon,
-  CalendarDaysIcon,
-  ShieldCheckIcon,
-  CheckIcon,
-  XMarkIcon,
-  ChevronDownIcon,
-  ArrowDownTrayIcon,
-  ArrowRightIcon,
-} from '@heroicons/react/24/outline';
 
-// ── Data ────────────────────────────────────────────────────────────────────
+// Animation variants
+const fadeInUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 }
+};
 
-const features = [
-  {
-    Icon: SparklesIcon,
-    title: 'AI Document Extraction',
-    desc: 'Upload any certificate and our AI reads it instantly — expiry dates, cert numbers, issuing bodies. Extracted automatically and filed in the right place. No data entry.',
-  },
-  {
-    Icon: UsersIcon,
-    title: 'People, Vehicles & Equipment',
-    desc: 'Track compliance across your entire operation. Workers, fleet vehicles, plant and equipment all managed from a single dashboard.',
-  },
-  {
-    Icon: BellAlertIcon,
-    title: 'Proactive Expiry Alerts',
-    desc: 'Automated email reminders at 30, 14, and 7 days before anything expires. Your team gets notified. Renewals get booked.',
-  },
-  {
-    Icon: ChartBarIcon,
-    title: 'Live Compliance Dashboard',
-    desc: "See your compliance status at a glance. Instant view of what's current, expiring, and overdue across your whole organisation.",
-  },
-  {
-    Icon: CalendarDaysIcon,
-    title: 'Compliance Calendar',
-    desc: 'Every upcoming renewal in one calendar. Export to CSV or sync with Google Calendar, Outlook, or Apple Calendar.',
-  },
-  {
-    Icon: DocumentTextIcon,
-    title: 'Document Versioning',
-    desc: 'Full audit history of every certificate — who uploaded it, when, and what replaced what. Audit-ready at any time.',
-  },
-  {
-    Icon: ShieldCheckIcon,
-    title: 'Built for Construction',
-    desc: 'Pre-configured for CSCS, IPAF, PASMA, LOLER, MOT, Insurance, First Aid, SMSTS, and more. Works across all trades.',
-  },
-];
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
 
-const stats = [
-  { value: '94%',   label: 'reduction in missed renewals in first 3 months' },
-  { value: '4.2h',  label: 'saved per week on compliance admin, per manager' },
-  { value: '£1,200+', label: 'average annual saving per business' },
-  { value: 'Zero',  label: 'HSE compliance notices received by customers' },
-];
-
-const testimonials = [
-  {
-    quote: 'We had a subcontractor on site for three weeks before anyone noticed his IPAF card had expired. With HatSafe, that conversation happens before they even arrive.',
-    name: 'Site Manager',
-    company: '£8m civil engineering business',
-  },
-  {
-    quote: 'The AI reads the documents better than I do. It picked up a renewal date buried in small print on an insurance certificate — I would have missed it completely.',
-    name: 'Fleet & Compliance Manager',
-    company: 'Plant hire company',
-  },
-  {
-    quote: 'I used to spend a full day every month chasing certificates. Now I spend 20 minutes reviewing what HatSafe has flagged. That time goes back into actual work.',
-    name: 'Operations Manager',
-    company: 'Specialist groundworks contractor',
-  },
-];
-
-const plans = [
-  {
-    name: 'Starter',
-    price: '£49',
-    period: '/month',
-    desc: 'For small teams getting started',
-    features: ['50 people', '20 vehicles', '10 assets', '500 documents', 'Email support'],
-    cta: 'Start Free Trial',
-    highlight: false,
-  },
-  {
-    name: 'Professional',
-    price: '£99',
-    period: '/month',
-    desc: 'Most popular for growing businesses',
-    features: ['200 people', '100 vehicles', '50 assets', '2,000 documents', 'Priority support', 'Scheduled reports'],
-    cta: 'Start Free Trial',
-    highlight: true,
-  },
-  {
-    name: 'Business',
-    price: '£199',
-    period: '/month',
-    desc: 'For large or multi-site operations',
-    features: ['Unlimited people & vehicles', 'Unlimited assets & documents', 'API access', 'Dedicated account manager', 'Custom reporting'],
-    cta: 'Start Free Trial',
-    highlight: false,
-  },
-];
-
-const comparison = [
-  { feature: 'Automatic expiry alerts',    spreadsheet: false, hatsafe: true },
-  { feature: 'AI document reading',        spreadsheet: false, hatsafe: true },
-  { feature: 'Works on mobile',            spreadsheet: false, hatsafe: true },
-  { feature: 'Audit-ready reports',        spreadsheet: false, hatsafe: true },
-  { feature: 'Document version history',   spreadsheet: false, hatsafe: true },
-  { feature: 'Multi-user access',          spreadsheet: false, hatsafe: true },
-  { feature: 'Calendar integration',       spreadsheet: false, hatsafe: true },
-  { feature: 'Minutes to set up',          spreadsheet: false, hatsafe: true },
-];
-
-const faqs = [
-  {
-    q: 'Do I need to be technical to use it?',
-    a: 'No. If you can use email, you can use HatSafe. Upload a document, and the AI handles everything else. Most customers are fully set up within an hour.',
-  },
-  {
-    q: 'What types of documents does it support?',
-    a: 'Any document with an expiry date. CSCS cards, IPAF, PASMA, SMSTS, LOLER inspections, MOT certificates, vehicle insurance, road tax, first aid, working at height — if it has an expiry date, we track it.',
-  },
-  {
-    q: 'We already have a system. Can we import our data?',
-    a: 'Yes. You can import existing records via CSV. Our team will help you migrate if needed — Professional and Business customers get hands-on onboarding support.',
-  },
-  {
-    q: 'How does the AI extraction actually work?',
-    a: 'When you upload a document, our AI reads the text, identifies the document type, and extracts key fields — expiry date, certificate number, issuing body, and entity name. It then matches this to the relevant person, vehicle, or asset. Confidence scores flag anything uncertain for manual review.',
-  },
-  {
-    q: 'Is our data secure?',
-    a: 'Yes. All data is encrypted in transit and at rest, with UK data residency and full row-level security. We take compliance seriously — it would be embarrassing if we didn\'t.',
-  },
-  {
-    q: 'Can I cancel anytime?',
-    a: 'Yes. Month-to-month billing, no lock-in. Cancel with one click from your settings page.',
-  },
-];
-
-const playbook = [
-  'The true cost of compliance failures in UK construction',
-  'Why spreadsheets are the single biggest risk in your process',
-  'How AI document extraction works — and what it means for your admin team',
-  'A step-by-step framework for auditing your current compliance gaps',
-  'How to build a renewal schedule that actually works',
-  'Real examples from businesses that eliminated missed renewals entirely',
-  'A readiness checklist you can act on today',
-];
-
-// ── Sub-components ────────────────────────────────────────────────────────────
-
-function FaqItem({ q, a }: { q: string; a: string }) {
-  const [open, setOpen] = useState(false);
+export default function MarketingHome() {
   return (
-    <div style={{ borderBottom: '1px solid #F3F3F3' }}>
-      <button
-        className="w-full flex items-center justify-between py-5 text-left"
-        onClick={() => setOpen(o => !o)}>
-        <span className="font-medium text-sm" style={{ color: '#1A1C1C', paddingRight: '24px' }}>{q}</span>
-        <ChevronDownIcon
-          className="w-4 h-4 flex-shrink-0 transition-transform"
-          style={{ color: '#A3A3A3', transform: open ? 'rotate(180deg)' : 'none' }}
-          strokeWidth={2} />
-      </button>
-      {open && (
-        <p className="pb-5" style={{ fontSize: '14px', color: '#474747', lineHeight: 1.7 }}>{a}</p>
-      )}
-    </div>
-  );
-}
-
-// ── Page ──────────────────────────────────────────────────────────────────────
-
-export default function MarketingPage() {
-  return (
-    <div style={{ backgroundColor: '#F9F9F9', color: '#1A1C1C', fontFamily: 'Inter, system-ui, sans-serif' }}>
-
-      {/* ── NAV ── */}
-      <nav style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid rgba(198,198,198,0.4)', position: 'sticky', top: 0, zIndex: 50 }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 32px', display: 'flex', alignItems: 'center', height: '64px', gap: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
-            <div style={{ width: '32px', height: '32px', backgroundColor: '#FFC107', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <span style={{ fontWeight: 700, fontSize: '14px', color: '#1A1C1C' }}>H</span>
-            </div>
-            <span style={{ fontWeight: 700, fontSize: '15px', letterSpacing: '-0.01em' }}>HatSafe</span>
+    <div className="min-h-screen bg-white">
+      {/* Sticky Navigation */}
+      <motion.nav
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100"
+      >
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Shield className="w-8 h-8 text-emerald-600" />
+            <span className="text-2xl font-bold text-gray-900">HatSafe</span>
           </div>
-          <div style={{ display: 'flex', gap: '28px', alignItems: 'center' }}>
-            <a href="#features" style={{ fontSize: '14px', color: '#474747', textDecoration: 'none' }}>Features</a>
-            <a href="#pricing" style={{ fontSize: '14px', color: '#474747', textDecoration: 'none' }}>Pricing</a>
-            <a href="#faq" style={{ fontSize: '14px', color: '#474747', textDecoration: 'none' }}>FAQ</a>
-            <Link href="/login" style={{ fontSize: '14px', color: '#474747', textDecoration: 'none' }}>Sign in</Link>
-            <Link href="/signup" style={{ backgroundColor: '#FFC107', color: '#1A1C1C', fontWeight: 600, fontSize: '13px', padding: '8px 16px', borderRadius: '4px', textDecoration: 'none', whiteSpace: 'nowrap' }}>
-              Start Free Trial
+          <div className="hidden md:flex items-center gap-8">
+            <Link href="#features" className="text-gray-600 hover:text-gray-900 transition">Features</Link>
+            <Link href="#pricing" className="text-gray-600 hover:text-gray-900 transition">Pricing</Link>
+            <Link href="/login" className="text-gray-600 hover:text-gray-900 transition">Login</Link>
+            <Link href="#demo" className="px-6 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition font-medium">
+              Book a demo
             </Link>
           </div>
         </div>
-      </nav>
+      </motion.nav>
 
-      {/* ── HERO ── */}
-      <section style={{ maxWidth: '1100px', margin: '0 auto', padding: '96px 32px 80px' }}>
-        <div style={{ maxWidth: '760px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: '#FFF8E1', border: '1px solid #FFC107', borderRadius: '4px', padding: '6px 12px', marginBottom: '32px' }}>
-            <SparklesIcon style={{ width: '14px', height: '14px', color: '#92400E' }} strokeWidth={2} />
-            <span style={{ fontSize: '12px', fontWeight: 500, letterSpacing: '0.04em', color: '#92400E' }}>AI-POWERED COMPLIANCE MANAGEMENT</span>
-          </div>
-          <h1 style={{ fontSize: 'clamp(2.5rem, 6vw, 4rem)', fontWeight: 700, lineHeight: 1.05, letterSpacing: '-0.03em', color: '#1A1C1C', marginBottom: '24px' }}>
-            Your team shouldn't be on site without the right certificates.
-            <span style={{ color: '#474747' }}> Most of them probably are.</span>
-          </h1>
-          <p style={{ fontSize: '18px', color: '#474747', lineHeight: 1.7, marginBottom: '40px', maxWidth: '600px' }}>
-            HatSafe automatically tracks every training certificate, licence, and inspection across your workforce, vehicles, and equipment. AI reads the documents. You stay compliant.
-          </p>
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '48px' }}>
-            <Link href="/signup" style={{ backgroundColor: '#FFC107', color: '#1A1C1C', fontWeight: 700, fontSize: '15px', padding: '14px 28px', borderRadius: '4px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-              Start Free Trial — 14 days free
-              <ArrowRightIcon style={{ width: '16px', height: '16px' }} strokeWidth={2.5} />
-            </Link>
-            <a href="#playbook" style={{ color: '#1A1C1C', fontWeight: 500, fontSize: '14px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '14px 4px' }}>
-              <ArrowDownTrayIcon style={{ width: '15px', height: '15px', color: '#474747' }} strokeWidth={2} />
-              Download the Free Playbook
-            </a>
-          </div>
-          <p style={{ fontSize: '13px', color: '#A3A3A3' }}>
-            No credit card required · Cancel anytime · Used by construction businesses across the UK
-          </p>
-        </div>
-
-        {/* Hero image */}
-        <div style={{ marginTop: '64px', borderRadius: '8px', overflow: 'hidden', boxShadow: '0px 40px 80px rgba(0,0,0,0.12)', position: 'relative', aspectRatio: '16/9', maxHeight: '520px' }}>
-          <Image src="/img-hero.png" alt="Site manager reviewing compliance on tablet at construction site" fill style={{ objectFit: 'cover', objectPosition: 'center' }} priority />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 60%)' }} />
-          <div style={{ position: 'absolute', bottom: '28px', left: '32px' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(255,193,7,0.95)', borderRadius: '4px', padding: '8px 14px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 700, color: '#1A1C1C' }}>94% fewer missed renewals in the first 3 months</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── PROBLEM ── */}
-      <section style={{ backgroundColor: '#000000', padding: '80px 32px' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginBottom: '20px' }}>THE COST OF GETTING IT WRONG</p>
-          <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.75rem)', fontWeight: 700, color: '#FFFFFF', lineHeight: 1.2, letterSpacing: '-0.02em', marginBottom: '24px', maxWidth: '700px' }}>
-            One expired card. One HSE visit. One prosecution.
-          </h2>
-          <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.65)', lineHeight: 1.7, maxWidth: '640px', marginBottom: '48px' }}>
-            Construction businesses face a compliance burden that's growing every year. CSCS cards, IPAF licences, LOLER inspections, MOTs, insurance certificates — tracked across dozens of people, vehicles, and pieces of equipment. Usually on spreadsheets. Often on paper. Occasionally in someone's head.
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1px', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '6px', overflow: 'hidden' }}>
-            {[
-              'Workers on site with expired certifications',
-              'Vehicles driven past their MOT date',
-              'Equipment in use without a current inspection',
-              'Managers finding out about problems after the client does',
-            ].map((item, i) => (
-              <div key={i} style={{ backgroundColor: '#111', padding: '28px 24px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                <div style={{ width: '20px', height: '20px', backgroundColor: '#FFC107', borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
-                  <XMarkIcon style={{ width: '12px', height: '12px', color: '#1A1C1C' }} strokeWidth={3} />
-                </div>
-                <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.75)', lineHeight: 1.6 }}>{item}</span>
-              </div>
-            ))}
-          </div>
-          <p style={{ marginTop: '32px', fontSize: '14px', color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}>
-            The average construction business has 47 compliance documents that need active renewal management. Most businesses miss at least six renewals a year.
-          </p>
-
-          {/* Team image */}
-          <div style={{ marginTop: '48px', borderRadius: '6px', overflow: 'hidden', position: 'relative', height: '320px' }}>
-            <Image src="/img-team.png" alt="Construction professionals reviewing compliance on site" fill style={{ objectFit: 'cover', objectPosition: 'center top' }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.5) 0%, transparent 50%)' }} />
-          </div>
-        </div>
-      </section>
-
-      {/* ── HOW IT WORKS ── */}
-      <section style={{ maxWidth: '1100px', margin: '0 auto', padding: '96px 32px' }}>
-        <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.08em', color: '#A3A3A3', textTransform: 'uppercase', marginBottom: '16px' }}>HOW HATSAFE WORKS</p>
-        <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: '64px', maxWidth: '600px' }}>
-          Upload a certificate. AI does the rest.
-        </h2>
-        {/* Compliance image */}
-        <div style={{ borderRadius: '6px', overflow: 'hidden', position: 'relative', height: '280px', marginBottom: '48px', boxShadow: '0px 20px 40px rgba(0,0,0,0.08)' }}>
-          <Image src="/img-compliance.png" alt="Compliance manager reviewing certificates" fill style={{ objectFit: 'cover', objectPosition: 'center 30%' }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to left, rgba(249,249,249,0.7) 0%, transparent 60%)' }} />
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2px' }}>
-          {[
-            { step: '01', title: 'Upload', desc: 'Drag and drop a certificate, snap a photo, or email it in. HatSafe accepts PDFs, images, and scanned documents.' },
-            { step: '02', title: 'AI extracts and tracks', desc: 'Our AI identifies the document type, reads the expiry date, and links it to the correct person, vehicle, or asset. No manual entry.' },
-            { step: '03', title: 'Get ahead of renewals', desc: "Alerts at 30, 14, and 7 days before anything expires. Your dashboard shows exactly what's current, expiring, and overdue." },
-          ].map((s) => (
-            <div key={s.step} style={{ backgroundColor: '#FFFFFF', borderRadius: '6px', padding: '40px 36px', boxShadow: '0px 20px 40px rgba(0,0,0,0.04)', border: '1px solid rgba(198,198,198,0.25)' }}>
-              <div style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.08em', color: '#FFC107', backgroundColor: '#FFF8E1', border: '1px solid #FFC107', borderRadius: '4px', display: 'inline-block', padding: '3px 8px', marginBottom: '20px' }}>
-                STEP {s.step}
-              </div>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#1A1C1C', marginBottom: '12px' }}>{s.title}</h3>
-              <p style={{ fontSize: '14px', color: '#474747', lineHeight: 1.7 }}>{s.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── FEATURES ── */}
-      <section id="features" style={{ backgroundColor: '#F3F3F3', padding: '96px 32px' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.08em', color: '#A3A3A3', textTransform: 'uppercase', marginBottom: '16px' }}>BUILT FOR THE WAY YOU WORK</p>
-          <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: '56px', maxWidth: '540px' }}>
-            Everything your compliance process needs. Nothing it doesn't.
-          </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
-            {features.map((f) => (
-              <div key={f.title} style={{ backgroundColor: '#FFFFFF', borderRadius: '6px', padding: '28px', boxShadow: '0px 20px 40px rgba(0,0,0,0.03)', border: '1px solid rgba(198,198,198,0.25)', display: 'flex', gap: '16px' }}>
-                <div style={{ width: '36px', height: '36px', backgroundColor: '#F9F9F9', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <f.Icon style={{ width: '16px', height: '16px', color: '#474747' }} strokeWidth={1.5} />
-                </div>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '14px', color: '#1A1C1C', marginBottom: '6px' }}>{f.title}</div>
-                  <div style={{ fontSize: '13px', color: '#474747', lineHeight: 1.6 }}>{f.desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── PLAYBOOK ── */}
-      <section id="playbook" style={{ backgroundColor: '#FFC107', padding: '80px 32px' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '48px', alignItems: 'center' }}>
-          <div>
-            <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.08em', color: 'rgba(0,0,0,0.5)', textTransform: 'uppercase', marginBottom: '16px' }}>FREE RESOURCE</p>
-            <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 700, letterSpacing: '-0.02em', color: '#1A1C1C', marginBottom: '16px', lineHeight: 1.2 }}>
-              The Construction Leader's Guide to AI Compliance Management
-            </h2>
-            <p style={{ fontSize: '15px', color: '#474747', lineHeight: 1.7, marginBottom: '28px' }}>
-              A practical, no-fluff guide to transforming your compliance process using AI. Everything you need to know to get ahead — and stay ahead — of renewals.
-            </p>
-            <a href="#" style={{ backgroundColor: '#000000', color: '#FFFFFF', fontWeight: 700, fontSize: '14px', padding: '14px 24px', borderRadius: '4px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-              <ArrowDownTrayIcon style={{ width: '16px', height: '16px' }} strokeWidth={2} />
-              Download Free Playbook
-            </a>
-            <p style={{ fontSize: '12px', color: 'rgba(0,0,0,0.5)', marginTop: '12px' }}>Free. No sales calls. No drip emails.</p>
-          </div>
-          <div style={{ backgroundColor: 'rgba(0,0,0,0.08)', borderRadius: '6px', padding: '32px' }}>
-            <p style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', color: 'rgba(0,0,0,0.5)', textTransform: 'uppercase', marginBottom: '20px' }}>WHAT'S INSIDE</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {playbook.map((item, i) => (
-                <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                  <div style={{ width: '18px', height: '18px', backgroundColor: '#000000', borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
-                    <CheckIcon style={{ width: '11px', height: '11px', color: '#FFC107' }} strokeWidth={3} />
-                  </div>
-                  <span style={{ fontSize: '13px', color: '#1A1C1C', lineHeight: 1.5 }}>{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── STATS ── */}
-      <section style={{ backgroundColor: '#FFFFFF', padding: '80px 32px' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.08em', color: '#A3A3A3', textTransform: 'uppercase', marginBottom: '48px', textAlign: 'center' }}>WHAT BUSINESSES ARE SEEING</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2px', backgroundColor: '#F3F3F3', borderRadius: '6px', overflow: 'hidden' }}>
-            {stats.map((s) => (
-              <div key={s.value} style={{ backgroundColor: '#FFFFFF', padding: '40px 32px', textAlign: 'center' }}>
-                <div style={{ fontSize: '3rem', fontWeight: 700, color: '#1A1C1C', letterSpacing: '-0.03em', lineHeight: 1 }}>{s.value}</div>
-                <div style={{ fontSize: '13px', color: '#474747', marginTop: '10px', lineHeight: 1.5 }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── TESTIMONIALS ── */}
-      <section style={{ backgroundColor: '#F9F9F9', padding: '80px 32px' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-
-          {/* Worker + fleet images side by side */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px', marginBottom: '48px', borderRadius: '6px', overflow: 'hidden', height: '280px' }}>
-            <div style={{ position: 'relative', height: '280px' }}>
-              <Image src="/img-worker.png" alt="Construction worker on site with smartphone" fill style={{ objectFit: 'cover', objectPosition: 'center top' }} />
-            </div>
-            <div style={{ position: 'relative', height: '280px' }}>
-              <Image src="/img-fleet.png" alt="Fleet of construction vehicles at depot" fill style={{ objectFit: 'cover' }} />
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to left, transparent 40%, rgba(249,249,249,0.4))' }} />
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
-            {testimonials.map((t, i) => (
-              <div key={i} style={{ backgroundColor: '#FFFFFF', borderRadius: '6px', padding: '32px', boxShadow: '0px 20px 40px rgba(0,0,0,0.04)', border: '1px solid rgba(198,198,198,0.25)' }}>
-                <div style={{ fontSize: '28px', color: '#FFC107', fontWeight: 700, lineHeight: 1, marginBottom: '16px' }}>"</div>
-                <p style={{ fontSize: '14px', color: '#1A1C1C', lineHeight: 1.75, marginBottom: '24px', fontStyle: 'italic' }}>{t.quote}</p>
-                <div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#1A1C1C' }}>{t.name}</div>
-                  <div style={{ fontSize: '12px', color: '#A3A3A3', marginTop: '2px' }}>{t.company}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── COMPARISON ── */}
-      <section style={{ backgroundColor: '#FFFFFF', padding: '80px 32px' }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.08em', color: '#A3A3A3', textTransform: 'uppercase', marginBottom: '16px' }}>WHY NOT JUST USE A SPREADSHEET?</p>
-          <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: '40px' }}>
-            Spreadsheets don't send alerts. They don't read documents. They don't update themselves.
-          </h2>
-          <div style={{ borderRadius: '6px', overflow: 'hidden', border: '1px solid #F3F3F3' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px 120px', backgroundColor: '#F3F3F3', padding: '12px 24px' }}>
-              <div style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', color: '#A3A3A3' }}>CAPABILITY</div>
-              <div style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', color: '#A3A3A3', textAlign: 'center' }}>SPREADSHEET</div>
-              <div style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', color: '#1A1C1C', textAlign: 'center' }}>HATSAFE</div>
-            </div>
-            {comparison.map((row, i) => (
-              <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 120px 120px', padding: '14px 24px', borderTop: '1px solid #F3F3F3', backgroundColor: i % 2 === 0 ? '#FFFFFF' : '#FAFAFA' }}>
-                <span style={{ fontSize: '14px', color: '#474747' }}>{row.feature}</span>
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <XMarkIcon style={{ width: '16px', height: '16px', color: '#C6C6C6' }} strokeWidth={2} />
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <CheckIcon style={{ width: '16px', height: '16px', color: '#1A1C1C' }} strokeWidth={2.5} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── PRICING ── */}
-      <section id="pricing" style={{ backgroundColor: '#F3F3F3', padding: '96px 32px' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.08em', color: '#A3A3A3', textTransform: 'uppercase', marginBottom: '16px', textAlign: 'center' }}>PRICING</p>
-          <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: '12px', textAlign: 'center' }}>
-            Priced for the size of your business.
-          </h2>
-          <p style={{ fontSize: '16px', color: '#474747', textAlign: 'center', marginBottom: '56px' }}>
-            14-day free trial on every plan. No credit card required.
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-            {plans.map((p) => (
-              <div key={p.name} style={{
-                backgroundColor: p.highlight ? '#000000' : '#FFFFFF',
-                borderRadius: '6px',
-                padding: '36px 32px',
-                border: p.highlight ? 'none' : '1px solid rgba(198,198,198,0.25)',
-                boxShadow: '0px 20px 40px rgba(0,0,0,0.04)',
-                position: 'relative',
-              }}>
-                {p.highlight && (
-                  <div style={{ position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#FFC107', color: '#1A1C1C', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', padding: '4px 12px', borderRadius: '4px', whiteSpace: 'nowrap' }}>
-                    MOST POPULAR
-                  </div>
-                )}
-                <div style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.08em', color: p.highlight ? 'rgba(255,255,255,0.5)' : '#A3A3A3', textTransform: 'uppercase', marginBottom: '12px' }}>{p.name}</div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '2.5rem', fontWeight: 700, color: p.highlight ? '#FFFFFF' : '#1A1C1C', letterSpacing: '-0.02em' }}>{p.price}</span>
-                  <span style={{ fontSize: '14px', color: p.highlight ? 'rgba(255,255,255,0.5)' : '#A3A3A3' }}>{p.period}</span>
-                </div>
-                <p style={{ fontSize: '13px', color: p.highlight ? 'rgba(255,255,255,0.6)' : '#474747', marginBottom: '28px' }}>{p.desc}</p>
-                <div style={{ borderTop: `1px solid ${p.highlight ? 'rgba(255,255,255,0.1)' : '#F3F3F3'}`, paddingTop: '24px', marginBottom: '28px' }}>
-                  {p.features.map((f) => (
-                    <div key={f} style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
-                      <CheckIcon style={{ width: '14px', height: '14px', color: p.highlight ? '#FFC107' : '#1A1C1C', flexShrink: 0 }} strokeWidth={2.5} />
-                      <span style={{ fontSize: '13px', color: p.highlight ? 'rgba(255,255,255,0.8)' : '#474747' }}>{f}</span>
-                    </div>
-                  ))}
-                </div>
-                <Link href="/signup" style={{
-                  display: 'block', textAlign: 'center',
-                  backgroundColor: p.highlight ? '#FFC107' : '#000000',
-                  color: p.highlight ? '#1A1C1C' : '#FFFFFF',
-                  fontWeight: 700, fontSize: '14px', padding: '12px',
-                  borderRadius: '4px', textDecoration: 'none',
-                }}>
-                  {p.cta}
+      {/* Hero Section */}
+      <section className="pt-40 pb-32 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={staggerContainer}
+              className="space-y-8"
+            >
+              <motion.h1
+                variants={fadeInUp}
+                className="text-6xl lg:text-7xl font-bold text-gray-900 leading-tight"
+              >
+                Stop chasing certificates in spreadsheets and inboxes
+              </motion.h1>
+              <motion.p
+                variants={fadeInUp}
+                className="text-xl text-gray-600 max-w-2xl leading-relaxed"
+              >
+                HatSafe gives construction and trade businesses one simple place to store, track, and manage compliance documents — with automated expiry alerts and AI-assisted document processing.
+              </motion.p>
+              <motion.div
+                variants={fadeInUp}
+                className="flex flex-col sm:flex-row gap-4"
+              >
+                <Link href="#demo" className="px-8 py-4 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition font-medium text-lg">
+                  Book a demo
                 </Link>
+                <Link href="#how-it-works" className="px-8 py-4 border-2 border-gray-200 text-gray-900 rounded-lg hover:border-gray-300 transition font-medium text-lg">
+                  See how it works
+                </Link>
+              </motion.div>
+              <motion.div
+                variants={fadeInUp}
+                className="pt-8 space-y-3"
+              >
+                {[
+                  'Track employee, contractor, and supplier compliance in one place',
+                  'Get ahead of expired certificates before they become a problem',
+                  'Cut admin time spent chasing paperwork manually'
+                ].map((point, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <CheckCircle className="w-6 h-6 text-emerald-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-700 text-lg">{point}</span>
+                  </div>
+                ))}
+              </motion.div>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="relative"
+            >
+              <div className="aspect-[4/3] rounded-2xl bg-gradient-to-br from-emerald-50 to-gray-50 border border-gray-200 shadow-2xl overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Shield className="w-32 h-32 text-emerald-200" />
+                </div>
               </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Problem Section */}
+      <section className="py-32 px-6 bg-gray-50">
+        <div className="max-w-4xl mx-auto text-center space-y-6">
+          <motion.h2
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            className="text-5xl font-bold text-gray-900"
+          >
+            Compliance gets messy fast when everything lives in different places
+          </motion.h2>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            className="space-y-6 text-lg text-gray-600 leading-relaxed"
+          >
+            <p>
+              Most teams do not lose control of compliance because they do not care.
+            </p>
+            <p>
+              They lose control because certificates, licences, and training records end up spread across spreadsheets, inboxes, shared drives, and filing systems.
+            </p>
+            <p className="font-medium text-gray-900">That creates the same problems over and over:</p>
+          </motion.div>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+            className="grid sm:grid-cols-2 gap-6 pt-8 text-left"
+          >
+            {[
+              'expired documents slip through',
+              'teams waste time chasing updates',
+              'managers cannot see what is missing',
+              'audits become stressful and reactive'
+            ].map((problem, i) => (
+              <motion.div
+                key={i}
+                variants={fadeInUp}
+                className="p-6 bg-white rounded-xl border border-gray-200"
+              >
+                <p className="text-gray-700 text-lg">{problem}</p>
+              </motion.div>
             ))}
+          </motion.div>
+          <motion.p
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            className="text-xl font-medium text-gray-900 pt-8"
+          >
+            HatSafe fixes that by giving you one operational system for compliance documents.
+          </motion.p>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section id="how-it-works" className="py-32 px-6">
+        <div className="max-w-6xl mx-auto">
+          <motion.h2
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            className="text-5xl font-bold text-gray-900 text-center mb-20"
+          >
+            How HatSafe works
+          </motion.h2>
+          <div className="space-y-32">
+            {[
+              {
+                step: '1',
+                title: 'Upload documents',
+                description: 'Add certificates, licences, training records, insurance documents, and compliance files in one place.',
+                icon: Upload
+              },
+              {
+                step: '2',
+                title: 'Organise automatically',
+                description: 'HatSafe helps pull out the important details, including certificate type, holder, and expiry date.',
+                icon: FileText
+              },
+              {
+                step: '3',
+                title: 'Track what matters',
+                description: 'See upcoming renewals, expired records, and missing documents across your workforce and subcontractors.',
+                icon: BarChart3
+              },
+              {
+                step: '4',
+                title: 'Take action early',
+                description: 'Use alerts and reporting to fix issues before they become operational or compliance problems.',
+                icon: Bell
+              }
+            ].map((step, i) => {
+              const Icon = step.icon;
+              return (
+                <motion.div
+                  key={i}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  variants={fadeInUp}
+                  className={`grid md:grid-cols-2 gap-16 items-center ${i % 2 === 1 ? 'md:flex-row-reverse' : ''}`}
+                >
+                  <div className={i % 2 === 1 ? 'md:order-2' : ''}>
+                    <div className="inline-block px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium mb-6">
+                      Step {step.step}
+                    </div>
+                    <h3 className="text-4xl font-bold text-gray-900 mb-6">{step.title}</h3>
+                    <p className="text-xl text-gray-600 leading-relaxed">{step.description}</p>
+                  </div>
+                  <div className={i % 2 === 1 ? 'md:order-1' : ''}>
+                    <div className="aspect-[4/3] rounded-2xl bg-gradient-to-br from-emerald-50 to-gray-50 border border-gray-200 flex items-center justify-center">
+                      <Icon className="w-24 h-24 text-emerald-400" />
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* ── FAQ ── */}
-      <section id="faq" style={{ backgroundColor: '#FFFFFF', padding: '96px 32px' }}>
-        <div style={{ maxWidth: '720px', margin: '0 auto' }}>
-          <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.08em', color: '#A3A3A3', textTransform: 'uppercase', marginBottom: '16px' }}>FAQ</p>
-          <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: '40px' }}>
-            Questions we get asked
-          </h2>
-          <div>
-            {faqs.map((f) => <FaqItem key={f.q} q={f.q} a={f.a} />)}
-          </div>
+      {/* Benefits Bento Grid */}
+      <section id="features" className="py-32 px-6 bg-gray-50">
+        <div className="max-w-6xl mx-auto">
+          <motion.h2
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            className="text-5xl font-bold text-gray-900 text-center mb-20"
+          >
+            Built for real compliance admin, not generic document storage
+          </motion.h2>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+            className="grid md:grid-cols-2 gap-6"
+          >
+            {[
+              {
+                title: 'One source of truth',
+                description: 'Keep employee, contractor, and supplier documents in one searchable place.',
+                icon: Shield
+              },
+              {
+                title: 'Expiry visibility',
+                description: 'Know what is due to expire before it catches your team out.',
+                icon: Bell
+              },
+              {
+                title: 'Less admin time',
+                description: 'Reduce manual chasing and repetitive spreadsheet work.',
+                icon: CheckCircle
+              },
+              {
+                title: 'Better operational control',
+                description: 'Give managers a live view of what is compliant, what is missing, and what needs attention.',
+                icon: BarChart3
+              }
+            ].map((benefit, i) => {
+              const Icon = benefit.icon;
+              return (
+                <motion.div
+                  key={i}
+                  variants={fadeInUp}
+                  className="p-8 bg-white rounded-2xl border border-gray-200 hover:shadow-lg transition"
+                >
+                  <Icon className="w-12 h-12 text-emerald-600 mb-6" />
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">{benefit.title}</h3>
+                  <p className="text-lg text-gray-600 leading-relaxed">{benefit.description}</p>
+                </motion.div>
+              );
+            })}
+          </motion.div>
         </div>
       </section>
 
-      {/* ── FINAL CTA ── */}
-      <section style={{ backgroundColor: '#1A1C1C', padding: '96px 32px', textAlign: 'center' }}>
-        <div style={{ maxWidth: '640px', margin: '0 auto' }}>
-          <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.75rem)', fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.02em', lineHeight: 1.15, marginBottom: '20px' }}>
-            Stop finding out about compliance problems after they happen.
-          </h2>
-          <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.7, marginBottom: '40px' }}>
-            Join the construction and trades businesses that have already replaced their spreadsheets with something that actually works.
-          </p>
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/signup" style={{ backgroundColor: '#FFC107', color: '#1A1C1C', fontWeight: 700, fontSize: '15px', padding: '14px 28px', borderRadius: '4px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-              Start Free Trial
-              <ArrowRightIcon style={{ width: '16px', height: '16px' }} strokeWidth={2.5} />
+      {/* Social Proof */}
+      <section className="py-32 px-6">
+        <div className="max-w-5xl mx-auto">
+          <motion.h2
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            className="text-5xl font-bold text-gray-900 text-center mb-20"
+          >
+            Made for businesses that cannot afford compliance gaps
+          </motion.h2>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+            className="space-y-8"
+          >
+            {[
+              'HatSafe gave us one clear view of certification status instead of three different spreadsheets.',
+              'We stopped reacting to expired documents and started dealing with issues before they became a problem.',
+              'It cut the admin burden massively and made audit prep far easier.'
+            ].map((quote, i) => (
+              <motion.blockquote
+                key={i}
+                variants={fadeInUp}
+                className="p-8 bg-gray-50 rounded-2xl border border-gray-200"
+              >
+                <p className="text-2xl text-gray-700 leading-relaxed italic">"{quote}"</p>
+              </motion.blockquote>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Pricing Teaser */}
+      <section id="pricing" className="py-32 px-6 bg-gray-50">
+        <div className="max-w-4xl mx-auto text-center space-y-8">
+          <motion.h2
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            className="text-5xl font-bold text-gray-900"
+          >
+            Simple pricing that matches growing teams
+          </motion.h2>
+          <motion.p
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            className="text-xl text-gray-600 leading-relaxed"
+          >
+            HatSafe is designed for practical adoption, not drawn-out enterprise sales cycles.
+          </motion.p>
+          <motion.p
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            className="text-2xl text-gray-900 font-medium"
+          >
+            Plans start from <span className="text-emerald-600 font-bold">£49/month</span>, with options for growing teams that need more visibility, reporting, and control.
+          </motion.p>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+          >
+            <Link href="#demo" className="inline-block px-8 py-4 border-2 border-gray-900 text-gray-900 rounded-lg hover:bg-gray-900 hover:text-white transition font-medium text-lg">
+              View pricing
             </Link>
-            <a href="#playbook" style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: '#FFFFFF', fontWeight: 500, fontSize: '14px', padding: '14px 24px', borderRadius: '4px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-              <ArrowDownTrayIcon style={{ width: '15px', height: '15px' }} strokeWidth={2} />
-              Download the Free Playbook
-            </a>
-          </div>
-          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', marginTop: '20px' }}>
-            14-day free trial · No credit card · Cancel anytime
-          </p>
+          </motion.div>
         </div>
       </section>
 
-      {/* ── FOOTER ── */}
-      <footer style={{ backgroundColor: '#111111', padding: '40px 32px' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ width: '26px', height: '26px', backgroundColor: '#FFC107', borderRadius: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontWeight: 700, fontSize: '12px', color: '#1A1C1C' }}>H</span>
+      {/* Final CTA */}
+      <section id="demo" className="py-32 px-6">
+        <div className="max-w-4xl mx-auto text-center space-y-8">
+          <motion.h2
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            className="text-5xl font-bold text-gray-900"
+          >
+            Get control of compliance before it becomes a fire drill
+          </motion.h2>
+          <motion.p
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            className="text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto"
+          >
+            If your team is still managing certificates across spreadsheets, inboxes, and folders, HatSafe gives you a cleaner way to stay on top of it.
+          </motion.p>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            className="flex flex-col sm:flex-row gap-4 justify-center pt-8"
+          >
+            <Link href="/signup" className="px-8 py-4 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition font-medium text-lg">
+              Book a demo
+            </Link>
+            <Link href="mailto:hello@hatsafe.com" className="px-8 py-4 border-2 border-gray-200 text-gray-900 rounded-lg hover:border-gray-300 transition font-medium text-lg">
+              Talk through your setup
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-gray-200 py-16 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-12 mb-12">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Shield className="w-8 h-8 text-emerald-600" />
+                <span className="text-xl font-bold text-gray-900">HatSafe</span>
+              </div>
+              <p className="text-gray-600">
+                AI-powered certificate and compliance management for construction and trade businesses.
+              </p>
             </div>
-            <span style={{ fontWeight: 600, fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>HatSafe</span>
+            <div>
+              <h4 className="font-bold text-gray-900 mb-4">Product</h4>
+              <ul className="space-y-3">
+                <li><Link href="#features" className="text-gray-600 hover:text-gray-900">Features</Link></li>
+                <li><Link href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</Link></li>
+                <li><Link href="/signup" className="text-gray-600 hover:text-gray-900">Sign up</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold text-gray-900 mb-4">Company</h4>
+              <ul className="space-y-3">
+                <li><Link href="/about" className="text-gray-600 hover:text-gray-900">About</Link></li>
+                <li><Link href="/contact" className="text-gray-600 hover:text-gray-900">Contact</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold text-gray-900 mb-4">Legal</h4>
+              <ul className="space-y-3">
+                <li><Link href="/privacy" className="text-gray-600 hover:text-gray-900">Privacy</Link></li>
+                <li><Link href="/terms" className="text-gray-600 hover:text-gray-900">Terms</Link></li>
+              </ul>
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-            {['Privacy Policy', 'Terms of Service', 'support@hatsafe.com'].map((item) => (
-              <span key={item} style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>{item}</span>
-            ))}
+          <div className="pt-8 border-t border-gray-200 text-center text-gray-600">
+            <p>&copy; 2026 HatSafe. All rights reserved.</p>
           </div>
-          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)' }}>
-            © 2026 HatSafe · Built for UK construction and trades · UK GDPR compliant
-          </p>
         </div>
       </footer>
-
     </div>
   );
 }
