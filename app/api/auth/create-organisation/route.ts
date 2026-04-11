@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { seedDemoData } from '@/lib/demoSeed'
 
 export async function POST(request: Request) {
   try {
@@ -113,6 +114,11 @@ export async function POST(request: Request) {
       console.error('Error creating default document types:', docTypesError)
       // Non-fatal - continue anyway
     }
+
+    // Step 4: Seed demo data for new organisations (non-blocking — failure won't block signup)
+    seedDemoData(org.id).catch(err =>
+      console.error('[create-organisation] demo seed failed:', err)
+    )
 
     return NextResponse.json({
       success: true,
