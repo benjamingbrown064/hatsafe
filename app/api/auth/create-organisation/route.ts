@@ -1,6 +1,16 @@
 import { createServiceClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { seedDemoData } from '@/lib/demoSeed'
+
+// Admin client for auth.admin operations (supabase-js, not @supabase/ssr)
+function createAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  )
+}
 
 export async function POST(request: Request) {
   try {
@@ -36,8 +46,9 @@ export async function POST(request: Request) {
       )
     }
 
-    // Step 2: Fetch email from Supabase Auth
-    const { data: authUser } = await supabase.auth.admin.getUserById(user_id)
+    // Step 2: Fetch email from Supabase Auth using admin client
+    const adminClient = createAdminClient()
+    const { data: authUser } = await adminClient.auth.admin.getUserById(user_id)
     const userEmail = authUser?.user?.email ?? ''
 
     // Create user record (linked to org)
