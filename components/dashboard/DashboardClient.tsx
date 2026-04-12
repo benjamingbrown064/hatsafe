@@ -58,23 +58,34 @@ export default function DashboardClient() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploaded,     setUploaded]     = useState(false);
   const [loading,      setLoading]      = useState(true);
+  const [fetchError,   setFetchError]   = useState<string | null>(null);
   const [stats,        setStats]        = useState<Stats>({ expired: 0, expiringSoon: 0, valid: 0, pendingReview: 0 });
   const [alerts,       setAlerts]       = useState<Alert[]>([]);
   const [calendarDays, setCalendarDays] = useState<Record<string, 'critical' | 'warning'>>({});
 
   useEffect(() => {
     fetch('/api/dashboard/data')
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) {
+          setFetchError(`API returned ${r.status} — ${r.status === 401 ? 'session expired, please log out and back in' : 'unexpected error'}`);
+          setLoading(false);
+          return null;
+        }
+        return r.json();
+      })
       .then(d => {
+        if (!d) return;
         if (d.stats) {
           setStats(d.stats);
           setAlerts(d.alerts ?? []);
           setCalendarDays(d.calendarDays ?? {});
+        } else {
+          setFetchError(d.error ?? 'No data returned');
         }
         setLoading(false);
       })
       .catch(err => {
-        console.error('[DashboardClient] fetch error:', err);
+        setFetchError(String(err));
         setLoading(false);
       });
   }, []);
@@ -140,6 +151,11 @@ export default function DashboardClient() {
             <div className="p-6 space-y-5">
               {loading && (
                 <div className="text-center py-10"><div className="label-sm">LOADING…</div></div>
+              )}
+              {!loading && fetchError && (
+                <div className="px-4 py-3 text-sm" style={{ backgroundColor: '#FFF8E1', border: '1px solid #FFC107', borderRadius: '4px', color: '#92400E' }}>
+                  {fetchError}
+                </div>
               )}
               {!loading && alerts.length === 0 && (
                 <div className="text-center py-10">
