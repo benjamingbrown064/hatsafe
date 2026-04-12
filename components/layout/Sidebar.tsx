@@ -10,7 +10,6 @@ import {
   WrenchIcon,
   CalendarIcon,
   ChartBarIcon,
-  Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
 
 const navigation = [
@@ -21,10 +20,6 @@ const navigation = [
   { name: 'Assets',     href: '/assets',     icon: WrenchIcon },
   { name: 'Calendar',   href: '/calendar',   icon: CalendarIcon },
   { name: 'Reports',    href: '/reports',    icon: ChartBarIcon },
-];
-
-const bottom = [
-  { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
 ];
 
 export default function Sidebar() {
@@ -68,21 +63,9 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Bottom section */}
+      {/* User pill */}
       <div className="px-3 pb-4" style={{ borderTop: '1px solid rgba(198,198,198,0.4)', paddingTop: '12px' }}>
-        {bottom.map((item) => {
-          const active = isActive(item.href);
-          return (
-            <Link key={item.name} href={item.href} className="nav-item"
-              style={active ? { backgroundColor: '#FFC107', color: '#1A1C1C', fontWeight: 600 } : {}}>
-              <item.icon className="w-[18px] h-[18px] flex-shrink-0" strokeWidth={1.5} />
-              <span>{item.name}</span>
-            </Link>
-          );
-        })}
-
-        {/* User pill */}
-        <div className="flex items-center gap-3 px-3 py-2.5 mt-3 cursor-pointer hover:bg-white/60 transition-colors"
+        <div className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-white/60 transition-colors"
           style={{ borderRadius: '4px' }}>
           <div className="w-7 h-7 flex items-center justify-center flex-shrink-0"
             style={{ backgroundColor: '#1A1C1C', borderRadius: '4px' }}>
