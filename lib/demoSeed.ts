@@ -42,11 +42,21 @@ export async function seedDemoData(orgId: string): Promise<SeedResult> {
   const supabase = createServiceClient()
 
   // ── Idempotency check ────────────────────────────────────────────────────
-  const { data: org } = await supabase
+  // If the migration hasn't been applied yet (column doesn't exist), skip silently.
+  const { data: org, error: orgCheckError } = await supabase
     .from('organisations')
     .select('demo_seeded')
     .eq('id', orgId)
     .single()
+
+  if (orgCheckError) {
+    // Column doesn't exist yet (migration pending) — skip seed, don't fail signup
+    if (orgCheckError.code === '42703' || orgCheckError.message?.includes('column')) {
+      return { success: true, alreadySeeded: true }
+    }
+    // Any other error — fail silently, don't block signup
+    return { success: false, error: orgCheckError.message }
+  }
 
   if (org?.demo_seeded) {
     return { success: true, alreadySeeded: true }
