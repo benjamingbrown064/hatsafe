@@ -23,11 +23,13 @@ export default async function DashboardPage() {
   }> = [];
 
   if (user) {
-    const { data: userData } = await supabase
+    const { data: userData, error: userDataError } = await supabase
       .from('users')
       .select('organisation_id')
       .eq('id', user.id)
       .single();
+
+    if (userDataError) console.error('[dashboard] userData error:', userDataError.message);
 
     if (userData) {
       const orgId = userData.organisation_id;
@@ -36,25 +38,18 @@ export default async function DashboardPage() {
       const nowStr = now.toISOString().split('T')[0];
       const thirtyDaysStr = thirtyDaysFromNow.toISOString().split('T')[0];
 
-      // Fetch all documents with entity info for alerts
-      const { data: allDocs } = await supabase
+      // Fetch all documents (no join — simpler, avoids FK issues)
+      const { data: allDocs, error: docsError } = await supabase
         .from('documents')
-        .select(`
-          id,
-          title,
-          entity_type,
-          entity_id,
-          expiry_date,
-          status,
-          review_status,
-          document_types (name)
-        `)
+        .select('id, title, entity_type, entity_id, expiry_date, status, review_status, document_type_id')
         .eq('organisation_id', orgId)
         .order('expiry_date', { ascending: true });
 
-      if (allDocs) {
+      if (docsError) console.error('[dashboard] docs error:', docsError.message);
+
+      if (allDocs && allDocs.length > 0) {
         allDocs.forEach(doc => {
-          if (doc.status === 'pending_review' || doc.review_status === 'pending') {
+          if (doc.review_status === 'pending') {
             stats.pendingReview++;
           } else if (!doc.expiry_date) {
             stats.valid++;
@@ -67,20 +62,18 @@ export default async function DashboardPage() {
           }
         });
 
-        // Build alerts — expired + expiring within 30 days, sorted by urgency
+        // Build alerts — expired + expiring within 30 days
         const alertDocs = allDocs
           .filter(d => d.expiry_date && (d.expiry_date < nowStr || d.expiry_date <= thirtyDaysStr))
-          .filter(d => d.status !== 'pending_review')
           .slice(0, 8);
 
         // Fetch entity names in bulk
-        const peopleIds = alertDocs.filter(d => d.entity_type === 'person').map(d => d.entity_id);
-        const vehicleIds = alertDocs.filter(d => d.entity_type === 'vehicle').map(d => d.entity_id);
-        const assetIds = alertDocs.filter(d => d.entity_type === 'asset').map(d => d.entity_id);
-        const supplierIds = alertDocs.filter(d => d.entity_type === 'supplier').map(d => d.entity_id);
+        const peopleIds   = [...new Set(alertDocs.filter(d => d.entity_type === 'person').map(d => d.entity_id))];
+        const vehicleIds  = [...new Set(alertDocs.filter(d => d.entity_type === 'vehicle').map(d => d.entity_id))];
+        const assetIds    = [...new Set(alertDocs.filter(d => d.entity_type === 'asset').map(d => d.entity_id))];
+        const supplierIds = [...new Set(alertDocs.filter(d => d.entity_type === 'supplier').map(d => d.entity_id))];
 
         const entityNameMap: Record<string, string> = {};
-
         if (peopleIds.length > 0) {
           const { data: p } = await supabase.from('people').select('id, name').in('id', peopleIds);
           p?.forEach(x => { entityNameMap[x.id] = x.name; });
@@ -101,14 +94,13 @@ export default async function DashboardPage() {
         recentAlerts = alertDocs.map(doc => {
           const expiry = new Date(doc.expiry_date!);
           const daysUntil = Math.round((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-          const docTypeName = (doc.document_types as unknown as { name: string } | null)?.name ?? doc.title;
           return {
             id: doc.id,
-            title: `${docTypeName} ${daysUntil < 0 ? 'Expired' : 'Expiring Soon'}`,
+            title: `${doc.title} ${daysUntil < 0 ? 'Expired' : 'Expiring Soon'}`,
             entityName: entityNameMap[doc.entity_id] ?? 'Unknown',
             entityType: doc.entity_type,
             entityId: doc.entity_id,
-            documentType: docTypeName,
+            documentType: doc.title,
             expiryDate: doc.expiry_date!,
             daysUntilExpiry: daysUntil,
             severity: (daysUntil < 0 || daysUntil <= 7) ? 'critical' as const : 'warning' as const,
