@@ -36,13 +36,17 @@ export async function POST(request: Request) {
       )
     }
 
-    // Step 2: Create user record (linked to org)
+    // Step 2: Fetch email from Supabase Auth
+    const { data: authUser } = await supabase.auth.admin.getUserById(user_id)
+    const userEmail = authUser?.user?.email ?? ''
+
+    // Create user record (linked to org)
     const { error: userError } = await supabase
       .from('users')
       .insert({
         id: user_id,
         organisation_id: org.id,
-        email: '', // Will be filled from auth.users
+        email: userEmail,
         name: user_name,
         role: 'admin', // First user is admin
       })
