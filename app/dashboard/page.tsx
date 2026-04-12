@@ -50,7 +50,6 @@ export default async function DashboardPage() {
           document_types (name)
         `)
         .eq('organisation_id', orgId)
-        .is('archived_at', null)
         .order('expiry_date', { ascending: true });
 
       if (allDocs) {
