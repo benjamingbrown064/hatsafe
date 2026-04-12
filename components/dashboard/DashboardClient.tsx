@@ -12,7 +12,6 @@ import {
   WrenchScrewdriverIcon,
 } from '@heroicons/react/24/outline';
 import AISuggestions from './AISuggestions';
-import { createClient } from '@/lib/supabase/client';
 
 interface Alert {
   id: string;
@@ -64,107 +63,20 @@ export default function DashboardClient() {
   const [calendarDays, setCalendarDays] = useState<Record<string, 'critical' | 'warning'>>({});
 
   useEffect(() => {
-    async function loadDashboard() {
-      try {
-        const supabase = createClient();
-
-        // Get current user
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { setLoading(false); return; }
-
-        // Get org
-        const { data: userData } = await supabase
-          .from('users')
-          .select('organisation_id')
-          .eq('id', user.id)
-          .single();
-        if (!userData) { setLoading(false); return; }
-
-        const orgId = userData.organisation_id;
-        const now = new Date();
-        const nowStr = now.toISOString().split('T')[0];
-        const thirtyDaysStr = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-
-        // Fetch all documents
-        const { data: allDocs } = await supabase
-          .from('documents')
-          .select('id, title, entity_type, entity_id, expiry_date, status, review_status')
-          .eq('organisation_id', orgId)
-          .order('expiry_date', { ascending: true });
-
-        if (!allDocs || allDocs.length === 0) { setLoading(false); return; }
-
-        // Stats
-        const newStats: Stats = { expired: 0, expiringSoon: 0, valid: 0, pendingReview: 0 };
-        allDocs.forEach(doc => {
-          if (doc.review_status === 'pending') { newStats.pendingReview++; return; }
-          if (!doc.expiry_date)               { newStats.valid++;          return; }
-          if (doc.expiry_date < nowStr)        { newStats.expired++;        return; }
-          if (doc.expiry_date <= thirtyDaysStr){ newStats.expiringSoon++;   return; }
-          newStats.valid++;
-        });
-        setStats(newStats);
-
-        // Alert docs
-        const alertDocs = allDocs
-          .filter(d => d.expiry_date && (d.expiry_date < nowStr || d.expiry_date <= thirtyDaysStr))
-          .slice(0, 8);
-
-        // Calendar
-        const calDays: Record<string, 'critical' | 'warning'> = {};
-        alertDocs.forEach(doc => {
-          if (!doc.expiry_date) return;
-          const daysUntil = Math.round((new Date(doc.expiry_date).getTime() - now.getTime()) / 86400000);
-          const sev = daysUntil < 0 || daysUntil <= 7 ? 'critical' : 'warning';
-          if (!calDays[doc.expiry_date] || sev === 'critical') calDays[doc.expiry_date] = sev;
-        });
-        setCalendarDays(calDays);
-
-        // Entity names
-        const peopleIds   = [...new Set(alertDocs.filter(d => d.entity_type === 'person').map(d => d.entity_id))];
-        const vehicleIds  = [...new Set(alertDocs.filter(d => d.entity_type === 'vehicle').map(d => d.entity_id))];
-        const assetIds    = [...new Set(alertDocs.filter(d => d.entity_type === 'asset').map(d => d.entity_id))];
-        const supplierIds = [...new Set(alertDocs.filter(d => d.entity_type === 'supplier').map(d => d.entity_id))];
-
-        const nameMap: Record<string, string> = {};
-        if (peopleIds.length > 0) {
-          const { data: p } = await supabase.from('people').select('id, name').in('id', peopleIds);
-          p?.forEach(x => { nameMap[x.id] = x.name; });
+    fetch('/api/dashboard/data')
+      .then(r => r.json())
+      .then(d => {
+        if (d.stats) {
+          setStats(d.stats);
+          setAlerts(d.alerts ?? []);
+          setCalendarDays(d.calendarDays ?? {});
         }
-        if (vehicleIds.length > 0) {
-          const { data: v } = await supabase.from('vehicles').select('id, registration').in('id', vehicleIds);
-          v?.forEach(x => { nameMap[x.id] = x.registration; });
-        }
-        if (assetIds.length > 0) {
-          const { data: a } = await supabase.from('assets').select('id, name').in('id', assetIds);
-          a?.forEach(x => { nameMap[x.id] = x.name; });
-        }
-        if (supplierIds.length > 0) {
-          const { data: s } = await supabase.from('suppliers').select('id, company_name').in('id', supplierIds);
-          s?.forEach(x => { nameMap[x.id] = x.company_name; });
-        }
-
-        const newAlerts: Alert[] = alertDocs.map(doc => {
-          const daysUntil = Math.round((new Date(doc.expiry_date!).getTime() - now.getTime()) / 86400000);
-          return {
-            id: doc.id,
-            title: `${doc.title} ${daysUntil < 0 ? 'Expired' : 'Expiring Soon'}`,
-            entityName: nameMap[doc.entity_id] ?? 'Unknown',
-            entityType: doc.entity_type,
-            entityId: doc.entity_id,
-            documentType: doc.title,
-            expiryDate: doc.expiry_date!,
-            daysUntilExpiry: daysUntil,
-            severity: daysUntil < 0 || daysUntil <= 7 ? 'critical' : 'warning',
-          };
-        });
-        setAlerts(newAlerts);
-      } catch (err) {
-        console.error('[DashboardClient] error:', err);
-      }
-      setLoading(false);
-    }
-    loadDashboard();
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('[DashboardClient] fetch error:', err);
+        setLoading(false);
+      });
   }, []);
 
   function handleUploadClick() { fileInputRef.current?.click(); }
