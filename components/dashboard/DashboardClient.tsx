@@ -10,9 +10,9 @@ import {
   CheckCircleIcon,
   UserIcon,
   WrenchScrewdriverIcon,
-  SparklesIcon,
 } from '@heroicons/react/24/outline';
 import AISuggestions from './AISuggestions';
+import { createClient } from '@/lib/supabase/client';
 
 interface Alert {
   id: string;
@@ -26,15 +26,11 @@ interface Alert {
   severity: 'critical' | 'warning';
 }
 
-interface DashboardData {
-  stats: {
-    expired: number;
-    expiringSoon: number;
-    valid: number;
-    pendingReview: number;
-  };
-  alerts: Alert[];
-  calendarDays: Record<string, 'critical' | 'warning'>;
+interface Stats {
+  expired: number;
+  expiringSoon: number;
+  valid: number;
+  pendingReview: number;
 }
 
 function daysLabel(days: number) {
@@ -61,18 +57,114 @@ function entityUrl(type: string, id: string) {
 
 export default function DashboardClient() {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploaded,  setUploaded]  = useState(false);
-  const [loading,   setLoading]   = useState(true);
-  const [data,      setData]      = useState<DashboardData | null>(null);
+  const [uploaded,     setUploaded]     = useState(false);
+  const [loading,      setLoading]      = useState(true);
+  const [stats,        setStats]        = useState<Stats>({ expired: 0, expiringSoon: 0, valid: 0, pendingReview: 0 });
+  const [alerts,       setAlerts]       = useState<Alert[]>([]);
+  const [calendarDays, setCalendarDays] = useState<Record<string, 'critical' | 'warning'>>({});
 
   useEffect(() => {
-    fetch('/api/dashboard/data')
-      .then(r => r.json())
-      .then(d => {
-        if (d.stats) setData(d);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    async function loadDashboard() {
+      try {
+        const supabase = createClient();
+
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { setLoading(false); return; }
+
+        // Get org
+        const { data: userData } = await supabase
+          .from('users')
+          .select('organisation_id')
+          .eq('id', user.id)
+          .single();
+        if (!userData) { setLoading(false); return; }
+
+        const orgId = userData.organisation_id;
+        const now = new Date();
+        const nowStr = now.toISOString().split('T')[0];
+        const thirtyDaysStr = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+        // Fetch all documents
+        const { data: allDocs } = await supabase
+          .from('documents')
+          .select('id, title, entity_type, entity_id, expiry_date, status, review_status')
+          .eq('organisation_id', orgId)
+          .order('expiry_date', { ascending: true });
+
+        if (!allDocs || allDocs.length === 0) { setLoading(false); return; }
+
+        // Stats
+        const newStats: Stats = { expired: 0, expiringSoon: 0, valid: 0, pendingReview: 0 };
+        allDocs.forEach(doc => {
+          if (doc.review_status === 'pending') { newStats.pendingReview++; return; }
+          if (!doc.expiry_date)               { newStats.valid++;          return; }
+          if (doc.expiry_date < nowStr)        { newStats.expired++;        return; }
+          if (doc.expiry_date <= thirtyDaysStr){ newStats.expiringSoon++;   return; }
+          newStats.valid++;
+        });
+        setStats(newStats);
+
+        // Alert docs
+        const alertDocs = allDocs
+          .filter(d => d.expiry_date && (d.expiry_date < nowStr || d.expiry_date <= thirtyDaysStr))
+          .slice(0, 8);
+
+        // Calendar
+        const calDays: Record<string, 'critical' | 'warning'> = {};
+        alertDocs.forEach(doc => {
+          if (!doc.expiry_date) return;
+          const daysUntil = Math.round((new Date(doc.expiry_date).getTime() - now.getTime()) / 86400000);
+          const sev = daysUntil < 0 || daysUntil <= 7 ? 'critical' : 'warning';
+          if (!calDays[doc.expiry_date] || sev === 'critical') calDays[doc.expiry_date] = sev;
+        });
+        setCalendarDays(calDays);
+
+        // Entity names
+        const peopleIds   = [...new Set(alertDocs.filter(d => d.entity_type === 'person').map(d => d.entity_id))];
+        const vehicleIds  = [...new Set(alertDocs.filter(d => d.entity_type === 'vehicle').map(d => d.entity_id))];
+        const assetIds    = [...new Set(alertDocs.filter(d => d.entity_type === 'asset').map(d => d.entity_id))];
+        const supplierIds = [...new Set(alertDocs.filter(d => d.entity_type === 'supplier').map(d => d.entity_id))];
+
+        const nameMap: Record<string, string> = {};
+        if (peopleIds.length > 0) {
+          const { data: p } = await supabase.from('people').select('id, name').in('id', peopleIds);
+          p?.forEach(x => { nameMap[x.id] = x.name; });
+        }
+        if (vehicleIds.length > 0) {
+          const { data: v } = await supabase.from('vehicles').select('id, registration').in('id', vehicleIds);
+          v?.forEach(x => { nameMap[x.id] = x.registration; });
+        }
+        if (assetIds.length > 0) {
+          const { data: a } = await supabase.from('assets').select('id, name').in('id', assetIds);
+          a?.forEach(x => { nameMap[x.id] = x.name; });
+        }
+        if (supplierIds.length > 0) {
+          const { data: s } = await supabase.from('suppliers').select('id, company_name').in('id', supplierIds);
+          s?.forEach(x => { nameMap[x.id] = x.company_name; });
+        }
+
+        const newAlerts: Alert[] = alertDocs.map(doc => {
+          const daysUntil = Math.round((new Date(doc.expiry_date!).getTime() - now.getTime()) / 86400000);
+          return {
+            id: doc.id,
+            title: `${doc.title} ${daysUntil < 0 ? 'Expired' : 'Expiring Soon'}`,
+            entityName: nameMap[doc.entity_id] ?? 'Unknown',
+            entityType: doc.entity_type,
+            entityId: doc.entity_id,
+            documentType: doc.title,
+            expiryDate: doc.expiry_date!,
+            daysUntilExpiry: daysUntil,
+            severity: daysUntil < 0 || daysUntil <= 7 ? 'critical' : 'warning',
+          };
+        });
+        setAlerts(newAlerts);
+      } catch (err) {
+        console.error('[DashboardClient] error:', err);
+      }
+      setLoading(false);
+    }
+    loadDashboard();
   }, []);
 
   function handleUploadClick() { fileInputRef.current?.click(); }
@@ -82,10 +174,6 @@ export default function DashboardClient() {
     setTimeout(() => setUploaded(false), 3000);
     e.target.value = '';
   }
-
-  const stats    = data?.stats    ?? { expired: 0, expiringSoon: 0, valid: 0, pendingReview: 0 };
-  const alerts   = data?.alerts   ?? [];
-  const calDays  = data?.calendarDays ?? {};
 
   const stats4 = [
     { label: 'EXPIRED',        value: loading ? '—' : String(stats.expired),      urgent: !loading && stats.expired > 0 },
@@ -104,9 +192,7 @@ export default function DashboardClient() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats4.map((s, i) => (
           <div key={s.label} className="card"
-            style={i === 0 && s.urgent ? {
-              backgroundColor: '#000000', color: '#FFFFFF', border: 'none',
-            } : {}}>
+            style={i === 0 && s.urgent ? { backgroundColor: '#000000', color: '#FFFFFF', border: 'none' } : {}}>
             <div className="stat-label" style={i === 0 && s.urgent ? { color: 'rgba(255,255,255,0.5)' } : {}}>
               {s.label}
             </div>
@@ -124,7 +210,7 @@ export default function DashboardClient() {
         ))}
       </div>
 
-      {/* Main content — two column */}
+      {/* Main grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Expiry alerts */}
@@ -140,13 +226,9 @@ export default function DashboardClient() {
               </a>
             </div>
             <div className="p-6 space-y-5">
-
               {loading && (
-                <div className="text-center py-10">
-                  <div className="label-sm">LOADING…</div>
-                </div>
+                <div className="text-center py-10"><div className="label-sm">LOADING…</div></div>
               )}
-
               {!loading && alerts.length === 0 && (
                 <div className="text-center py-10">
                   <DocumentTextIcon className="w-8 h-8 mx-auto mb-3" style={{ color: '#C6C6C6' }} strokeWidth={1} />
@@ -154,10 +236,8 @@ export default function DashboardClient() {
                   <p style={{ fontSize: '13px', color: '#A3A3A3' }}>No compliance alerts at this time</p>
                 </div>
               )}
-
               {!loading && alerts.length > 0 && (
                 <>
-                  {/* Summary */}
                   <div className="grid grid-cols-2 gap-3">
                     <div style={{ backgroundColor: '#000000', borderRadius: '4px', padding: '14px 16px' }}>
                       <div className="label-sm mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>CRITICAL</div>
@@ -170,7 +250,6 @@ export default function DashboardClient() {
                       <div className="mt-1 label-sm" style={{ color: '#92400E' }}>ACTION NEEDED SOON</div>
                     </div>
                   </div>
-
                   {critical.length > 0 && (
                     <div>
                       <div className="label-sm mb-3">CRITICAL — ACTION REQUIRED</div>
@@ -203,7 +282,6 @@ export default function DashboardClient() {
                       </div>
                     </div>
                   )}
-
                   {warnings.length > 0 && (
                     <div>
                       <div className="label-sm mb-3">WARNINGS — PLAN SOON</div>
@@ -249,21 +327,16 @@ export default function DashboardClient() {
               <div className="label-sm mb-1">AI ADVISOR</div>
               <h2 style={{ fontSize: '1rem' }}>Recommendations</h2>
             </div>
-            <div className="p-5">
-              <AISuggestions />
-            </div>
+            <div className="p-5"><AISuggestions /></div>
           </div>
-
           <div className="card" style={{ padding: '20px' }}>
             <div className="label-sm mb-4">QUICK ACTIONS</div>
             <div className="space-y-2">
-              <Link href="/people"
-                className="w-full flex items-center gap-3 px-3 py-2.5 transition-colors"
+              <Link href="/people" className="w-full flex items-center gap-3 px-3 py-2.5 transition-colors"
                 style={{ borderRadius: '4px', textDecoration: 'none', display: 'flex' }}
                 onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F3F3F3')}
                 onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
-                <div className="w-8 h-8 flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: '#F3F3F3', borderRadius: '4px' }}>
+                <div className="w-8 h-8 flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#F3F3F3', borderRadius: '4px' }}>
                   <UserPlusIcon className="w-4 h-4" style={{ color: '#1A1C1C' }} strokeWidth={1.5} />
                 </div>
                 <div>
@@ -271,10 +344,8 @@ export default function DashboardClient() {
                   <div className="text-xs" style={{ color: '#A3A3A3' }}>Register new worker</div>
                 </div>
               </Link>
-
               <button className="w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors"
-                style={{ borderRadius: '4px' }}
-                onClick={handleUploadClick}
+                style={{ borderRadius: '4px' }} onClick={handleUploadClick}
                 onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F3F3F3')}
                 onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
                 <div className="w-8 h-8 flex items-center justify-center flex-shrink-0"
@@ -284,20 +355,15 @@ export default function DashboardClient() {
                     : <DocumentTextIcon className="w-4 h-4" style={{ color: '#1A1C1C' }} strokeWidth={1.5} />}
                 </div>
                 <div>
-                  <div className="text-sm font-medium" style={{ color: '#1A1C1C' }}>
-                    {uploaded ? 'Document Uploaded ✓' : 'Upload Document'}
-                  </div>
+                  <div className="text-sm font-medium" style={{ color: '#1A1C1C' }}>{uploaded ? 'Document Uploaded ✓' : 'Upload Document'}</div>
                   <div className="text-xs" style={{ color: '#A3A3A3' }}>Cert, licence, MOT…</div>
                 </div>
               </button>
-
-              <Link href="/vehicles"
-                className="w-full flex items-center gap-3 px-3 py-2.5 transition-colors"
+              <Link href="/vehicles" className="w-full flex items-center gap-3 px-3 py-2.5 transition-colors"
                 style={{ borderRadius: '4px', textDecoration: 'none', display: 'flex' }}
                 onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F3F3F3')}
                 onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
-                <div className="w-8 h-8 flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: '#F3F3F3', borderRadius: '4px' }}>
+                <div className="w-8 h-8 flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#F3F3F3', borderRadius: '4px' }}>
                   <TruckIcon className="w-4 h-4" style={{ color: '#1A1C1C' }} strokeWidth={1.5} />
                 </div>
                 <div>
@@ -312,7 +378,7 @@ export default function DashboardClient() {
         </div>
       </div>
 
-      {/* 30-day calendar strip */}
+      {/* Calendar */}
       <div className="card-flush">
         <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: '1px solid #F3F3F3' }}>
           <div>
@@ -327,12 +393,11 @@ export default function DashboardClient() {
           <div className="grid grid-cols-10 gap-2">
             {[...Array(30)].map((_, i) => {
               const dayDate = new Date(Date.now() + i * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-              const severity = calDays[dayDate];
+              const severity = calendarDays[dayDate];
               const isCritical = severity === 'critical';
               const hasAlert   = !!severity;
-              const day = i + 1;
               return (
-                <a key={i} href={`/calendar?day=${day}`}
+                <a key={i} href={`/calendar?day=${i + 1}`}
                   className="aspect-square flex flex-col items-center justify-center transition-all"
                   style={{
                     borderRadius: '4px',
@@ -342,12 +407,9 @@ export default function DashboardClient() {
                   }}
                   onMouseEnter={e => { if (!isCritical) e.currentTarget.style.opacity = '0.75'; }}
                   onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}>
-                  <span className="text-xs font-medium" style={{ color: isCritical ? '#FFFFFF' : '#1A1C1C' }}>
-                    {day}
-                  </span>
+                  <span className="text-xs font-medium" style={{ color: isCritical ? '#FFFFFF' : '#1A1C1C' }}>{i + 1}</span>
                   {hasAlert && (
-                    <span className="text-[9px] font-semibold"
-                      style={{ color: isCritical ? 'rgba(255,255,255,0.7)' : '#92400E' }}>
+                    <span className="text-[9px] font-semibold" style={{ color: isCritical ? 'rgba(255,255,255,0.7)' : '#92400E' }}>
                       {isCritical ? '!' : '↑'}
                     </span>
                   )}
