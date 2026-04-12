@@ -61,19 +61,25 @@ export async function GET() {
       stats.valid++
     })
 
-    // Alert docs
-    const alertDocs = (allDocs ?? [])
+    // Alert docs — most urgent first: expired sorted by most recently expired, then soonest expiring
+    const allAlertDocs = (allDocs ?? [])
       .filter(d => d.expiry_date && (d.expiry_date < nowStr || d.expiry_date <= thirtyDaysStr))
-      .slice(0, 8)
 
-    // Calendar markers
+    // Sort: expired (most recent first), then expiring (soonest first)
+    const expiredDocs  = allAlertDocs.filter(d => d.expiry_date! < nowStr).sort((a, b) => b.expiry_date!.localeCompare(a.expiry_date!))
+    const expiringDocs = allAlertDocs.filter(d => d.expiry_date! >= nowStr).sort((a, b) => a.expiry_date!.localeCompare(b.expiry_date!))
+    const alertDocs = [...expiredDocs, ...expiringDocs].slice(0, 8)
+
+    // Calendar markers — built from ALL future-expiring docs (not just top 8)
     const calendarDays: Record<string, 'critical' | 'warning'> = {}
-    alertDocs.forEach(doc => {
-      if (!doc.expiry_date) return
-      const daysUntil = Math.round((new Date(doc.expiry_date).getTime() - now.getTime()) / 86400000)
-      const sev: 'critical' | 'warning' = daysUntil < 0 || daysUntil <= 7 ? 'critical' : 'warning'
-      if (!calendarDays[doc.expiry_date] || sev === 'critical') calendarDays[doc.expiry_date] = sev
-    })
+    allAlertDocs
+      .filter(d => d.expiry_date && d.expiry_date >= nowStr) // only future dates show on calendar
+      .forEach(doc => {
+        if (!doc.expiry_date) return
+        const daysUntil = Math.round((new Date(doc.expiry_date).getTime() - now.getTime()) / 86400000)
+        const sev: 'critical' | 'warning' = daysUntil <= 7 ? 'critical' : 'warning'
+        if (!calendarDays[doc.expiry_date] || sev === 'critical') calendarDays[doc.expiry_date] = sev
+      })
 
     // Entity names
     const peopleIds   = [...new Set(alertDocs.filter(d => d.entity_type === 'person').map(d => d.entity_id))]
