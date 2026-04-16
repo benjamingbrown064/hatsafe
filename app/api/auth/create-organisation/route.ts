@@ -1,7 +1,9 @@
 import { createServiceClient } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
-import { NextResponse } from 'next/server'
-import { seedDemoData } from '@/lib/demoSeed'
+import { NextRequest, NextResponse } from 'next/server'
+import { CreateOrganisationSchema } from '@/lib/validation'
+import { checkRateLimit } from '@/lib/rateLimit'
+import logger from '@/lib/logger'
 
 // Admin client for auth.admin operations (supabase-js, not @supabase/ssr)
 function createAdminClient() {
@@ -12,16 +14,22 @@ function createAdminClient() {
   )
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const { user_id, organisation_name, user_name } = await request.json()
+    // Rate limit by IP
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'unknown';
+    const rl = await checkRateLimit(ip, 'auth');
+    if (!rl.success) return rl.response!;
 
-    if (!user_id || !organisation_name || !user_name) {
+    const rawBody = await request.json()
+    const validation = CreateOrganisationSchema.safeParse(rawBody)
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Validation failed', details: validation.error.flatten() },
         { status: 400 }
       )
     }
+    const { user_id, organisation_name, user_name } = validation.data
 
     // Use service role client to bypass RLS
     const supabase = createServiceClient()
@@ -39,11 +47,8 @@ export async function POST(request: Request) {
       .single()
 
     if (orgError) {
-      console.error('Error creating organisation:', orgError)
-      return NextResponse.json(
-        { error: 'Failed to create organisation' },
-        { status: 500 }
-      )
+      logger.error({ err: orgError }, 'Error creating organisation')
+      return NextResponse.json({ error: 'Failed to create organisation' }, { status: 500 })
     }
 
     // Step 2: Fetch email from Supabase Auth using admin client
@@ -63,13 +68,9 @@ export async function POST(request: Request) {
       })
 
     if (userError) {
-      console.error('Error creating user record:', userError)
-      // Rollback: delete organisation
+      logger.error({ err: userError }, 'Error creating user record')
       await supabase.from('organisations').delete().eq('id', org.id)
-      return NextResponse.json(
-        { error: 'Failed to create user profile' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to create user profile' }, { status: 500 })
     }
 
     // Step 3: Create default document types for this org
@@ -126,24 +127,19 @@ export async function POST(request: Request) {
       .insert(defaultDocTypes)
 
     if (docTypesError) {
-      console.error('Error creating default document types:', docTypesError)
+      logger.warn({ err: docTypesError }, 'Error creating default document types (non-fatal)')
       // Non-fatal - continue anyway
     }
 
-    // Step 4: Seed demo data for new organisations (non-blocking — failure won't block signup)
-    seedDemoData(org.id).catch(err =>
-      console.error('[create-organisation] demo seed failed:', err)
-    )
+    // Demo data is NOT auto-seeded on signup.
+    // Users can opt in via Settings → "Try with sample data" (trial accounts only).
 
     return NextResponse.json({
       success: true,
       organisation_id: org.id,
     })
   } catch (error) {
-    console.error('Unexpected error:', error)
-    return NextResponse.json(
-      { error: 'An unexpected error occurred' },
-      { status: 500 }
-    )
+    logger.error({ err: error }, 'Unexpected error in create-organisation')
+    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
   }
 }

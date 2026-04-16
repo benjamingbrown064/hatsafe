@@ -30,6 +30,7 @@ export default function Sidebar() {
     <aside
       className="hidden md:flex md:flex-col md:w-60 md:fixed md:inset-y-0"
       style={{ backgroundColor: '#F3F3F3' }}
+      aria-label="Application sidebar"
     >
       {/* Logo */}
       <div className="flex items-center h-16 px-5 gap-3" style={{ borderBottom: '1px solid rgba(198,198,198,0.4)' }}>
@@ -46,17 +47,22 @@ export default function Sidebar() {
       </div>
 
       {/* Primary navigation */}
-      <nav className="flex-1 px-3 py-5 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 px-3 py-5 space-y-0.5 overflow-y-auto" aria-label="Main navigation">
         {navigation.map((item) => {
           const active = isActive(item.href);
           return (
-            <Link key={item.name} href={item.href} className="nav-item" data-active={active || undefined}
+            <Link
+              key={item.name}
+              href={item.href}
+              className="nav-item"
+              data-active={active || undefined}
+              aria-current={active ? 'page' : undefined}
               style={active ? {
                 backgroundColor: '#FFC107',
                 color: '#1A1C1C',
                 fontWeight: 600,
               } : {}}>
-              <item.icon className="w-[18px] h-[18px] flex-shrink-0" strokeWidth={1.5} />
+              <item.icon className="w-[18px] h-[18px] flex-shrink-0" strokeWidth={1.5} aria-hidden="true" />
               <span>{item.name}</span>
             </Link>
           );

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import logger from '@/lib/logger';
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { clearDemoData } from '@/lib/demoSeed'
 
@@ -37,7 +38,7 @@ export async function POST() {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Demo clear error:', error)
+    logger.error({ err: error }, 'Demo clear error:')
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

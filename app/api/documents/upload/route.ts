@@ -1,22 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { v4 as uuidv4 } from 'uuid';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { checkPlanLimit } from '@/lib/planLimits';
+import { requireContributor } from '@/lib/middleware/rbac';
+import { logAuditEvent } from '@/lib/auditLog';
+import logger from '@/lib/logger';
+
+const ALLOWED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/heic', 'image/heif'];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
+// Magic byte signatures
+const MAGIC_BYTES: Record<string, number[][]> = {
+  'application/pdf': [[0x25, 0x50, 0x44, 0x46]],  // %PDF
+  'image/jpeg': [[0xFF, 0xD8, 0xFF]],
+  'image/png': [[0x89, 0x50, 0x4E, 0x47]],
+  'image/heic': [[0x66, 0x74, 0x79, 0x70]],         // ftyp at offset 4 — checked separately
+  'image/heif': [[0x66, 0x74, 0x79, 0x70]],
+};
+
+function checkMagicBytes(buffer: Buffer, mimeType: string): boolean {
+  const signatures = MAGIC_BYTES[mimeType];
+  if (!signatures) return false;
+  return signatures.some((sig) => {
+    // HEIC/HEIF: ftyp appears at byte offset 4
+    const offset = (mimeType === 'image/heic' || mimeType === 'image/heif') ? 4 : 0;
+    return sig.every((byte, i) => buffer[offset + i] === byte);
+  });
+}
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
 
-    // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's organisation
+    // Rate limit
+    const rl = await checkRateLimit(user.id, 'upload');
+    if (!rl.success) return rl.response!;
+
+    // RBAC
+    const rbac = await requireContributor(supabase, user.id);
+    if (!rbac.allowed) return rbac.response!;
+
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('organisation_id')
@@ -24,12 +53,12 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (userError || !userData?.organisation_id) {
-      console.error('User lookup error:', userError);
-      return NextResponse.json(
-        { error: 'No organisation found' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'No organisation found' }, { status: 400 });
     }
+
+    // Plan limit
+    const planCheck = await checkPlanLimit(supabase, userData.organisation_id, 'documents');
+    if (!planCheck.allowed) return planCheck.response!;
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
@@ -38,120 +67,122 @@ export async function POST(request: NextRequest) {
     const extractedDataStr = formData.get('extractedData') as string | null;
 
     if (!file) {
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    }
+
+    // Server-side file validation
+    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
       return NextResponse.json(
-        { error: 'No file provided' },
+        { error: 'File type not allowed. Accepted: PDF, JPEG, PNG, HEIC' },
+        { status: 400 }
+      );
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: 'File too large. Maximum size is 10 MB' },
+        { status: 413 }
+      );
+    }
+
+    // Read bytes and validate magic bytes
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    if (!checkMagicBytes(buffer, file.type)) {
+      return NextResponse.json(
+        { error: 'File content does not match its declared type' },
         { status: 400 }
       );
     }
 
     // Parse extracted data if available
-    const extractedData = extractedDataStr ? JSON.parse(extractedDataStr) : null;
-    
-    // For MVP: use placeholder entity if not provided
-    const finalEntityType = entityType || 'person';
-    const finalEntityId = entityId || '00000000-0000-0000-0000-000000000000'; // Placeholder
+    let extractedData: Record<string, unknown> | null = null;
+    if (extractedDataStr) {
+      try {
+        extractedData = JSON.parse(extractedDataStr);
+      } catch {
+        return NextResponse.json({ error: 'Invalid extractedData JSON' }, { status: 400 });
+      }
+    }
 
-    // Generate unique file path
+    const finalEntityType = entityType || 'person';
+    const finalEntityId = entityId || '00000000-0000-0000-0000-000000000000';
+
     const fileExt = file.name.split('.').pop();
     const fileName = `${uuidv4()}.${fileExt}`;
     const filePath = `${userData.organisation_id}/${fileName}`;
 
-    // Upload to Supabase Storage
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('documents')
       .upload(filePath, buffer, {
         contentType: file.type,
-        upsert: false
+        upsert: false,
       });
 
     if (uploadError) {
-      console.error('Storage upload error:', uploadError);
-      throw new Error('Failed to upload file to storage');
+      logger.error({ err: uploadError }, 'Storage upload error');
+      return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });
     }
 
-    // Calculate document status
     let status = 'pending_review';
     if (extractedData?.expiryDate) {
-      const expiryDate = new Date(extractedData.expiryDate);
+      const expiryDate = new Date(extractedData.expiryDate as string);
       const now = new Date();
       const daysUntilExpiry = Math.floor((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-
-      if (daysUntilExpiry < 0) {
-        status = 'expired';
-      } else if (daysUntilExpiry <= 30) {
-        status = 'expiring_soon';
-      } else {
-        status = 'valid';
-      }
+      if (daysUntilExpiry < 0) status = 'expired';
+      else if (daysUntilExpiry <= 30) status = 'expiring_soon';
+      else status = 'valid';
     }
 
-    // 1. Create document record
     const { data: document, error: dbError } = await supabase
       .from('documents')
       .insert({
         organisation_id: userData.organisation_id,
         entity_type: finalEntityType,
         entity_id: finalEntityId,
-        title: extractedData?.documentType || file.name,
-        issuer: extractedData?.issuer || null,
-        certificate_number: extractedData?.documentNumber || null,
-        issue_date: extractedData?.issueDate || null,
-        expiry_date: extractedData?.expiryDate || null,
+        title: (extractedData?.documentType as string) || file.name,
+        issuer: (extractedData?.issuer as string) || null,
+        certificate_number: (extractedData?.documentNumber as string) || null,
+        issue_date: (extractedData?.issueDate as string) || null,
+        expiry_date: (extractedData?.expiryDate as string) || null,
         status,
-        review_status: extractedData?.confidence > 0.7 ? 'approved' : 'pending',
-        confidence_score: extractedData?.confidence || null,
-        created_by: user.id
+        review_status: (extractedData?.confidence as number) > 0.7 ? 'approved' : 'pending',
+        confidence_score: (extractedData?.confidence as number) || null,
+        created_by: user.id,
       })
       .select()
       .single();
 
     if (dbError) {
-      console.error('Database insert error:', dbError);
-      
-      // Try to clean up uploaded file
-      await supabase.storage
-        .from('documents')
-        .remove([filePath]);
-      
-      throw new Error(`Failed to create document record: ${dbError.message}`);
+      logger.error({ err: dbError }, 'Database insert error');
+      await supabase.storage.from('documents').remove([filePath]);
+      return NextResponse.json({ error: 'Failed to create document record' }, { status: 500 });
     }
 
-    // 2. Create document version record
-    const { error: versionError } = await supabase
-      .from('document_versions')
-      .insert({
-        document_id: document.id,
-        version_number: 1,
-        file_path: filePath,
-        file_name: file.name,
-        file_size: file.size,
-        mime_type: file.type,
-        extraction_data: extractedData || {},
-        uploaded_by: user.id
-      });
-
-    if (versionError) {
-      console.error('Version insert error:', versionError);
-    }
-
-    return NextResponse.json({
-      success: true,
-      document
+    await supabase.from('document_versions').insert({
+      document_id: document.id,
+      version_number: 1,
+      file_path: filePath,
+      file_name: file.name,
+      file_size: file.size,
+      mime_type: file.type,
+      extraction_data: extractedData || {},
+      uploaded_by: user.id,
     });
 
+    await logAuditEvent(supabase, {
+      organisation_id: userData.organisation_id,
+      user_id: user.id,
+      action: 'file_upload',
+      resource_type: 'document',
+      resource_id: document.id,
+      metadata: { fileName: file.name, fileSize: file.size, mimeType: file.type },
+    });
+
+    return NextResponse.json({ success: true, document });
   } catch (error) {
-    console.error('Document upload error:', error);
-    
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to upload document',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+    logger.error({ err: error }, 'Document upload error');
+    return NextResponse.json({ error: 'Failed to upload document' }, { status: 500 });
   }
 }

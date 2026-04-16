@@ -9,6 +9,7 @@
  */
 
 import { createServiceClient } from '@/lib/supabase/server'
+import logger from '@/lib/logger';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -329,7 +330,7 @@ export async function seedDemoData(orgId: string): Promise<SeedResult> {
     return { success: true }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
-    console.error('[demoSeed] error:', msg)
+    logger.error({ err: msg }, '[demoSeed] error:')
     return { success: false, error: msg }
   }
 }
@@ -359,7 +360,7 @@ export async function clearDemoData(orgId: string): Promise<SeedResult> {
     return { success: true }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
-    console.error('[clearDemoData] error:', msg)
+    logger.error({ err: msg }, '[clearDemoData] error:')
     return { success: false, error: msg }
   }
 }

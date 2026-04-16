@@ -1,5 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { CreateAssetSchema, PaginationSchema, SearchSchema } from '@/lib/validation';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { checkPlanLimit } from '@/lib/planLimits';
+import { requireContributor } from '@/lib/middleware/rbac';
+import { logAuditEvent } from '@/lib/auditLog';
+import logger from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,12 +40,23 @@ export async function GET(request: Request) {
 
     const orgId = userData.organisation_id;
 
-    // Parse query params
-    const search = searchParams.get('search') || '';
+    // Rate limit
+    const rl = await checkRateLimit(user.id, 'general');
+    if (!rl.success) return rl.response!;
+
+    // Validate pagination
+    const paginationResult = PaginationSchema.merge(SearchSchema).safeParse({
+      page: searchParams.get('page'),
+      limit: searchParams.get('limit'),
+      search: searchParams.get('search'),
+    });
+    if (!paginationResult.success) {
+      return NextResponse.json({ error: 'Invalid query params' }, { status: 400 });
+    }
+
+    const { page, limit, search } = paginationResult.data;
     const assetType = searchParams.get('type');
     const siteId = searchParams.get('site');
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
     const offset = (page - 1) * limit;
 
     // Build query
@@ -77,11 +94,8 @@ export async function GET(request: Request) {
       .range(offset, offset + limit - 1);
 
     if (assetsError) {
-      console.error('Error fetching assets:', assetsError);
-      return NextResponse.json(
-        { error: 'Failed to fetch assets' },
-        { status: 500 }
-      );
+      logger.error({ err: assetsError }, 'Error fetching assets');
+      return NextResponse.json({ error: 'Failed to fetch assets' }, { status: 500 });
     }
 
     // Calculate document stats for each asset
@@ -141,76 +155,80 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    console.error('Assets API error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    logger.error({ err: error }, 'Assets API error');
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
-    const body = await request.json();
 
-    // Get current user and org
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's organisation
-    const { data: userData, error: userDataError } = await supabase
+    const rl = await checkRateLimit(user.id, 'general');
+    if (!rl.success) return rl.response!;
+
+    const rbac = await requireContributor(supabase, user.id);
+    if (!rbac.allowed) return rbac.response!;
+
+    const { data: userData } = await supabase
       .from('users')
       .select('organisation_id')
       .eq('id', user.id)
       .single();
 
-    if (userDataError || !userData) {
-      return NextResponse.json(
-        { error: 'User organisation not found' },
-        { status: 404 }
-      );
+    if (!userData?.organisation_id) {
+      return NextResponse.json({ error: 'User organisation not found' }, { status: 404 });
     }
 
-    // Create asset
+    const planCheck = await checkPlanLimit(supabase, userData.organisation_id, 'assets');
+    if (!planCheck.allowed) return planCheck.response!;
+
+    const rawBody = await request.json();
+    const validation = CreateAssetSchema.safeParse(rawBody);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: validation.error.flatten() },
+        { status: 400 }
+      );
+    }
+    const body = validation.data;
+
     const { data: asset, error: createError } = await supabase
       .from('assets')
       .insert({
         organisation_id: userData.organisation_id,
-        asset_id: body.asset_id,
         name: body.name,
-        type: body.type,
+        type: body.asset_type,
         manufacturer: body.manufacturer,
         model: body.model,
         serial_number: body.serial_number,
         site_id: body.site_id,
-        purchase_date: body.purchase_date,
-        warranty_expiry: body.warranty_expiry,
         notes: body.notes,
       })
       .select()
       .single();
 
     if (createError) {
-      console.error('Error creating asset:', createError);
-      return NextResponse.json(
-        { error: 'Failed to create asset' },
-        { status: 500 }
-      );
+      logger.error({ err: createError }, 'Error creating asset');
+      return NextResponse.json({ error: 'Failed to create asset' }, { status: 500 });
     }
+
+    await logAuditEvent(supabase, {
+      organisation_id: userData.organisation_id,
+      user_id: user.id,
+      action: 'create',
+      resource_type: 'asset',
+      resource_id: asset.id,
+    });
 
     return NextResponse.json(asset, { status: 201 });
   } catch (error) {
-    console.error('Create asset error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    logger.error({ err: error }, 'Create asset error');
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

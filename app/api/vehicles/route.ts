@@ -1,5 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { CreateVehicleSchema, PaginationSchema, SearchSchema } from '@/lib/validation';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { checkPlanLimit } from '@/lib/planLimits';
+import { requireContributor } from '@/lib/middleware/rbac';
+import { logAuditEvent } from '@/lib/auditLog';
+import logger from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,12 +40,23 @@ export async function GET(request: Request) {
 
     const orgId = userData.organisation_id;
 
-    // Parse query params
-    const search = searchParams.get('search') || '';
+    // Rate limit
+    const rl = await checkRateLimit(user.id, 'general');
+    if (!rl.success) return rl.response!;
+
+    // Validate pagination
+    const paginationResult = PaginationSchema.merge(SearchSchema).safeParse({
+      page: searchParams.get('page'),
+      limit: searchParams.get('limit'),
+      search: searchParams.get('search'),
+    });
+    if (!paginationResult.success) {
+      return NextResponse.json({ error: 'Invalid query params' }, { status: 400 });
+    }
+
+    const { page, limit, search } = paginationResult.data;
     const vehicleType = searchParams.get('type');
     const siteId = searchParams.get('site');
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
     const offset = (page - 1) * limit;
 
     // Build query
@@ -77,11 +94,8 @@ export async function GET(request: Request) {
       .range(offset, offset + limit - 1);
 
     if (vehiclesError) {
-      console.error('Error fetching vehicles:', vehiclesError);
-      return NextResponse.json(
-        { error: 'Failed to fetch vehicles' },
-        { status: 500 }
-      );
+      logger.error({ err: vehiclesError }, 'Error fetching vehicles');
+      return NextResponse.json({ error: 'Failed to fetch vehicles' }, { status: 500 });
     }
 
     // Calculate document stats for each vehicle
@@ -142,7 +156,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    console.error('Vehicles API error:', error);
+    logger.error({ err: error }, 'Vehicles API error:');
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -153,33 +167,41 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
-    const body = await request.json();
 
-    // Get current user and org
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's organisation
-    const { data: userData, error: userDataError } = await supabase
+    const rl = await checkRateLimit(user.id, 'general');
+    if (!rl.success) return rl.response!;
+
+    const rbac = await requireContributor(supabase, user.id);
+    if (!rbac.allowed) return rbac.response!;
+
+    const { data: userData } = await supabase
       .from('users')
       .select('organisation_id')
       .eq('id', user.id)
       .single();
 
-    if (userDataError || !userData) {
-      return NextResponse.json(
-        { error: 'User organisation not found' },
-        { status: 404 }
-      );
+    if (!userData?.organisation_id) {
+      return NextResponse.json({ error: 'User organisation not found' }, { status: 404 });
     }
 
-    // Create vehicle
+    const planCheck = await checkPlanLimit(supabase, userData.organisation_id, 'vehicles');
+    if (!planCheck.allowed) return planCheck.response!;
+
+    const rawBody = await request.json();
+    const validation = CreateVehicleSchema.safeParse(rawBody);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: validation.error.flatten() },
+        { status: 400 }
+      );
+    }
+    const body = validation.data;
+
     const { data: vehicle, error: createError } = await supabase
       .from('vehicles')
       .insert({
@@ -187,7 +209,6 @@ export async function POST(request: Request) {
         registration: body.registration,
         make: body.make,
         model: body.model,
-        type: body.type,
         year: body.year,
         vin: body.vin,
         site_id: body.site_id,
@@ -197,19 +218,21 @@ export async function POST(request: Request) {
       .single();
 
     if (createError) {
-      console.error('Error creating vehicle:', createError);
-      return NextResponse.json(
-        { error: 'Failed to create vehicle' },
-        { status: 500 }
-      );
+      logger.error({ err: createError }, 'Error creating vehicle');
+      return NextResponse.json({ error: 'Failed to create vehicle' }, { status: 500 });
     }
+
+    await logAuditEvent(supabase, {
+      organisation_id: userData.organisation_id,
+      user_id: user.id,
+      action: 'create',
+      resource_type: 'vehicle',
+      resource_id: vehicle.id,
+    });
 
     return NextResponse.json(vehicle, { status: 201 });
   } catch (error) {
-    console.error('Create vehicle error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    logger.error({ err: error }, 'Create vehicle error');
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

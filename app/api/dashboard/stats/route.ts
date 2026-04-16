@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import logger from '@/lib/logger';
 import { createClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
@@ -45,7 +46,7 @@ export async function GET() {
       .is('archived_at', null);
 
     if (docsError) {
-      console.error('Error fetching documents:', docsError);
+      logger.error({ err: docsError }, 'Error fetching documents:');
       return NextResponse.json(
         { error: 'Failed to fetch documents' },
         { status: 500 }
@@ -77,7 +78,7 @@ export async function GET() {
 
     return NextResponse.json(stats);
   } catch (error) {
-    console.error('Dashboard stats error:', error);
+    logger.error({ err: error }, 'Dashboard stats error:');
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

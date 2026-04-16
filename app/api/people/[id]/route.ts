@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
+import logger from '@/lib/logger';
 import { createClient } from '@/lib/supabase/server';
+import { requireAdmin } from '@/lib/middleware/rbac';
+import { logAuditEvent } from '@/lib/auditLog';
 
 export const dynamic = 'force-dynamic';
 
@@ -67,7 +70,7 @@ export async function GET(
 
     return NextResponse.json(person);
   } catch (error) {
-    console.error('Get person error:', error);
+    logger.error({ err: error }, 'Get person error:');
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -131,7 +134,7 @@ export async function PATCH(
       .single();
 
     if (updateError) {
-      console.error('Error updating person:', updateError);
+      logger.error({ err: updateError }, 'Error updating person:');
       return NextResponse.json(
         { error: 'Failed to update person' },
         { status: 500 }
@@ -140,7 +143,7 @@ export async function PATCH(
 
     return NextResponse.json(person);
   } catch (error) {
-    console.error('Update person error:', error);
+    logger.error({ err: error }, 'Update person error:');
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -174,11 +177,12 @@ export async function DELETE(
       .single();
 
     if (userDataError || !userData) {
-      return NextResponse.json(
-        { error: 'User organisation not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'User organisation not found' }, { status: 404 });
     }
+
+    // DELETE requires admin role
+    const rbac = await requireAdmin(supabase, user.id);
+    if (!rbac.allowed) return rbac.response!;
 
     // Soft delete (set archived_at)
     const { error: deleteError } = await supabase
@@ -188,16 +192,24 @@ export async function DELETE(
       .eq('organisation_id', userData.organisation_id);
 
     if (deleteError) {
-      console.error('Error deleting person:', deleteError);
+      logger.error({ err: deleteError }, 'Error deleting person:');
       return NextResponse.json(
         { error: 'Failed to delete person' },
         { status: 500 }
       );
     }
 
+    await logAuditEvent(supabase, {
+      organisation_id: userData.organisation_id,
+      user_id: user.id,
+      action: 'delete',
+      resource_type: 'person',
+      resource_id: id,
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Delete person error:', error);
+    logger.error({ err: error }, 'Delete person error:');
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

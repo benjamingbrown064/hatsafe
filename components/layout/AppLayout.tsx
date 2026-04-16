@@ -12,7 +12,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="flex-1 flex flex-col md:pl-60">
           <DemoBannerWrapper />
           <TopBar />
-          <main className="flex-1 overflow-y-auto">
+          <main id="main-content" className="flex-1 overflow-y-auto" tabIndex={-1}>
             <div className="max-w-[1320px] mx-auto px-8 py-8">
               {children}
             </div>
